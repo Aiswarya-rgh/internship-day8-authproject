@@ -29,6 +29,11 @@ class Employer(models.Model):
 
     company_name = models.CharField(max_length=200, blank=True)
     company_location = models.CharField(max_length=200, blank=True)
+          #day 11 additional  fields 
+    company_name=models.CharField(max_length=200,blank=True)
+    company_domain=models.CharField(max_length=200,blank=True)
+    company_size=models.CharField(max_length=100,blank=True)
+    is_company_verified=models.BooleanField(default=False)
 
     def __str__(self):
         return self.user.email 
@@ -40,8 +45,11 @@ class Candidate(models.Model):
         related_name="candidate_profile"
     )
 
-    skills = models.TextField(blank=True)
     resume = models.FileField(upload_to="resumes/", blank=True, null=True)
-
+        #day 11 additional  fields 
+    skills=models.TextField(blank=True)
+    education=models.CharField(max_length=200,blank=True)
+    experience=models.PositiveIntegerField(default=0)
+    expected_salary=models.DecimalField(max_digits=10,decimal_places=2,default=0.00)
     def __str__(self):
         return self.user.email
