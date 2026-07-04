@@ -12,6 +12,7 @@ from .views import (
     EmployerDashboard,
     CandidateDashboard,
     AdminDashboard,
+    ResumeUploadAPIView
 )
 
 urlpatterns = [
@@ -33,6 +34,8 @@ urlpatterns = [
     path("employer-profile/", EmployerProfileAPIView.as_view()),
 
     path("candidate-profile/", CandidateProfileAPIView.as_view()),
+
+    path("upload-resume/",ResumeUploadAPIView.as_view()),
 
 
 ]

@@ -132,4 +132,8 @@ STATIC_URL = 'static/'
 
 #auth_user model created
 
-AUTH_USER_MODEL = "accounts.customUser"
+AUTH_USER_MODEL = "accounts.CustomUser"
+
+#media files
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"

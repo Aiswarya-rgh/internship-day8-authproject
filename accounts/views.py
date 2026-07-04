@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 
 
 from .models import CustomUser,Employer,Candidate
-from .serializers import (RegisterSerializer,EmployerProfileSerializer,CandidateProfileSerializer)
+from .serializers import (RegisterSerializer,EmployerProfileSerializer,CandidateProfileSerializer,ResumeUploadSerializer,)
 from .permissions import IsAdmin, IsEmployer, IsCandidate
 
 class RegisterAPIView(generics.CreateAPIView):
@@ -116,3 +116,24 @@ class CandidateProfileAPIView(APIView):
         return Response({
             "message": "Candidate profile deleted successfully."
         })    
+#RESUME UPLOAD SERIALIZER
+class ResumeUploadAPIView(APIView):
+    permission_classes = [IsAuthenticated,IsCandidate]
+
+    def put(self,request):
+        profile = request.user.candidate_profile
+        serializer = ResumeUploadSerializer(
+            profile,
+            data=request.data,
+            partial=True
+        )
+        if serializer.is_valid():
+            serializer.save()
+
+            return Response({
+                "message": "Resume uploaded successfully.",
+                "data": serializer.data
+            })
+
+        return Response(serializer.errors)
+    

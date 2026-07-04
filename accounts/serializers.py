@@ -1,3 +1,4 @@
+import os
 from rest_framework import serializers
 from .models import CustomUser,Employer,Candidate
 
@@ -47,3 +48,34 @@ class CandidateProfileSerializer(serializers.ModelSerializer):
             "experience",
             "expected_salary",
         ]
+#resume upload
+import os
+from rest_framework import serializers
+from .models import Candidate
+
+class ResumeUploadSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Candidate
+        fields = ["resume"]
+
+def validate_resume(self, value):
+
+    if not value:
+        raise serializers.ValidationError("Please select a resume file.")
+
+    allowed_extensions = [".pdf", ".doc", ".docx"]
+
+    extension = os.path.splitext(value.name)[1].lower()
+
+    if extension not in allowed_extensions:
+        raise serializers.ValidationError(
+            "Only PDF, DOC and DOCX files are allowed."
+        )
+
+    if value.size > 5 * 1024 * 1024:
+        raise serializers.ValidationError(
+            "File size must be less than 5 MB."
+        )
+
+    return value
