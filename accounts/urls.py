@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import RegisterAPIView, ProfileAPIView
+from .views import (RegisterAPIView, ProfileAPIView,EmployerDashboard,CandidateDashboard,AdminDashboard,EmployerProfileAPIView,CandidateProfileAPIView,)
 
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -29,5 +29,10 @@ urlpatterns = [
     path("candidate/", CandidateDashboard.as_view()),
 
     path("admin-panel/", AdminDashboard.as_view()),
+
+    path("employer-profile/", EmployerProfileAPIView.as_view()),
+
+    path("candidate-profile/", CandidateProfileAPIView.as_view()),
+
 
 ]

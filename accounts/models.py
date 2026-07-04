@@ -27,7 +27,6 @@ class Employer(models.Model):
         related_name="employer_profile"
     )
 
-    company_name = models.CharField(max_length=200, blank=True)
     company_location = models.CharField(max_length=200, blank=True)
           #day 11 additional  fields 
     company_name=models.CharField(max_length=200,blank=True)

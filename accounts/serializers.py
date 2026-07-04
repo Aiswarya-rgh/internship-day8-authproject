@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser
+from .models import CustomUser,Employer,Candidate
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -25,3 +25,25 @@ class RegisterSerializer(serializers.ModelSerializer):
             password=validated_data["password"],
         )
         return user
+    # Employer Profile Serializer
+class EmployerProfileSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Employer
+        fields = [
+            "company_name",
+            "company_domain",
+            "company_size",
+            "is_company_verified",
+        ]
+# Candidate Profile Serializer
+class CandidateProfileSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Candidate
+        fields = [
+            "skills",
+            "education",
+            "experience",
+            "expected_salary",
+        ]
