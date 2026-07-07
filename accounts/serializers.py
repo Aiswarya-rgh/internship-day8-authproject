@@ -47,6 +47,7 @@ class CandidateProfileSerializer(serializers.ModelSerializer):
             "education",
             "experience",
             "expected_salary",
+            "resume"
         ]
 #resume upload
 import os
