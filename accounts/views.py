@@ -5,8 +5,11 @@ from rest_framework.views import APIView
 
 
 from .models import CustomUser,Employer,Candidate
-from .serializers import (RegisterSerializer,EmployerProfileSerializer,CandidateProfileSerializer,ResumeUploadSerializer,)
+from .serializers import (RegisterSerializer,EmployerProfileSerializer,CandidateProfileSerializer,ResumeUploadSerializer,CandidateListSerializer,UserListSerializer)
 from .permissions import IsAdmin, IsEmployer, IsCandidate
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter
+
 
 class RegisterAPIView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
@@ -136,4 +139,16 @@ class ResumeUploadAPIView(APIView):
             })
 
         return Response(serializer.errors)
-    
+#PAGINATION CANDIDATELIST
+class CandidateListAPIView(generics.ListAPIView):
+    queryset = Candidate.objects.all()
+    serializer_class = CandidateListSerializer
+    permission_classes = [IsAuthenticated]
+#filtering by role
+class UserListAPIView(generics.ListAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class =  UserListSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend,SearchFilter]
+    filterset_fields = ["role","created_at","is_verified"]
+    search_fields = ["username","email"]

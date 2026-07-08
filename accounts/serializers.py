@@ -80,3 +80,26 @@ def validate_resume(self, value):
         )
 
     return value
+#pagination candidate listing
+class CandidateListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Candidate
+        fields = [
+            "id",
+            "skills",
+            "education",
+            "experience",
+            "expected_salary",
+        ]
+#filtering based on role
+class UserListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = [
+            "id",
+            "username",
+            "email",
+            "role",
+            "created_at",
+            "is_verified"
+        ]

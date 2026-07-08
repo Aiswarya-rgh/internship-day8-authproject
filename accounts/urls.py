@@ -1,18 +1,10 @@
 from django.urls import path
 
-from .views import (RegisterAPIView, ProfileAPIView,EmployerDashboard,CandidateDashboard,AdminDashboard,EmployerProfileAPIView,CandidateProfileAPIView,)
+from .views import (RegisterAPIView, ProfileAPIView,ResumeUploadAPIView,EmployerDashboard,CandidateDashboard,AdminDashboard,EmployerProfileAPIView,CandidateProfileAPIView,CandidateListAPIView,UserListAPIView)
 
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
-)
-from .views import (
-    RegisterAPIView,
-    ProfileAPIView,
-    EmployerDashboard,
-    CandidateDashboard,
-    AdminDashboard,
-    ResumeUploadAPIView
 )
 
 urlpatterns = [
@@ -36,6 +28,10 @@ urlpatterns = [
     path("candidate-profile/", CandidateProfileAPIView.as_view()),
 
     path("upload-resume/",ResumeUploadAPIView.as_view()),
+
+    path("candidates/",CandidateListAPIView.as_view()),
+
+    path("users/",UserListAPIView.as_view()),
 
 
 ]
