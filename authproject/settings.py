@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
     'jobs',
+    'applications'
 ]
 from datetime import timedelta
 
