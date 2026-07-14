@@ -10,9 +10,17 @@ class ApplicationSerializer(serializers.ModelSerializer):
             "status",
             "applied_at",
             "resume_snapshot",
+            "status_updated_at",
         ]
+
 class ApplicationHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Application
         fields = "__all__"
-  
+
+
+class ApplicationStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Application
+        fields = ["status"]
+

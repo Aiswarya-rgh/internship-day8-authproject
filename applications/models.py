@@ -5,22 +5,24 @@ from jobs.models import Job
 # Create your models here.
 class Application(models.Model):
     APPLIED = "Applied"
-    REVIEWING = "Reviewing"
     SHORTLISTED = "Shortlisted"
+    INTERVIEW = "Interview Scheduled"
     REJECTED = "Rejected"
-    HIRED = "Hired"
+    SELECTED = "Selected"
 
     STATUS_CHOICES = (
-        (APPLIED,"Applied"),
-        (REVIEWING,"Reviewing"),
-        (SHORTLISTED,"Shortlisted"),
-        (REJECTED,"Rejected"),
-        (HIRED,"Hired")
-    )
+    (APPLIED, "Applied"),
+    (SHORTLISTED, "Shortlisted"),
+    (INTERVIEW, "Interview Scheduled"),
+    (REJECTED, "Rejected"),
+    (SELECTED, "Selected"),
+)
+
     candidate = models.ForeignKey(Candidate,on_delete=models.CASCADE,related_name="applications")
     job = models.ForeignKey(Job,on_delete=models.CASCADE,related_name="applications")
     resume_snapshot = models.FileField(upload_to="application_resumes/")
     status = models.CharField(max_length=20,choices=STATUS_CHOICES,default=APPLIED)
+    status_updated_at = models.DateTimeField(auto_now=True)
     applied_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
