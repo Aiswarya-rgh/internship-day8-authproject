@@ -14,6 +14,10 @@ class ApplicationSerializer(serializers.ModelSerializer):
         ]
 
 class ApplicationHistorySerializer(serializers.ModelSerializer):
+    candidate_name = serializers.CharField(
+        source="candidate.user.username",
+        read_only=True
+    )
     class Meta:
         model = Application
         fields = "__all__"

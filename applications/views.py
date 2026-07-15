@@ -2,6 +2,9 @@ from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter
+
 from .models import Application
 from .serializers import (
     ApplicationSerializer,
@@ -162,3 +165,59 @@ class UpdateApplicationStatusAPIView(generics.UpdateAPIView):
                 "data": serializer.data
             }
         )
+class ApplicantListAPIView(generics.ListAPIView):
+
+    serializer_class = ApplicationHistorySerializer
+    permission_classes = [IsAuthenticated, IsEmployer]
+
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ["status"]
+
+    search_fields = ["candidate__user__username"]
+
+    def get_queryset(self):
+
+        job_id = self.kwargs["job_id"]
+
+        return Application.objects.filter(
+            job__id=job_id,
+            job__employer=self.request.user.employer_profile
+        )
+
+from rest_framework.views import APIView
+
+class EmployerDashboardAPIView(APIView):
+
+    permission_classes = [IsAuthenticated, IsEmployer]
+
+    def get(self, request):
+
+        employer = request.user.employer_profile
+
+        jobs = Job.objects.filter(employer=employer)
+
+        total_jobs = jobs.count()
+
+        total_applications = Application.objects.filter(
+            job__employer=employer
+        ).count()
+
+        shortlisted = Application.objects.filter(
+            job__employer=employer,
+            status="Shortlisted"
+        ).count()
+
+        if total_applications > 0:
+            shortlist_ratio = round(
+                (shortlisted / total_applications) * 100,
+                2
+            )
+        else:
+            shortlist_ratio = 0
+
+        return Response({
+            "total_jobs": total_jobs,
+            "total_applications": total_applications,
+            "shortlisted_candidates": shortlisted,
+            "shortlist_ratio": f"{shortlist_ratio}%"
+        })
