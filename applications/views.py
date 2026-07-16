@@ -4,12 +4,14 @@ from rest_framework.response import Response
 
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
+from django.db.models import Q
 
-from .models import Application
+from .models import Application,SavedJob
 from .serializers import (
     ApplicationSerializer,
     ApplicationHistorySerializer,
     ApplicationStatusSerializer,
+    SavedJobSerializer,
 )
 
 from jobs.models import Job
@@ -221,3 +223,136 @@ class EmployerDashboardAPIView(APIView):
             "shortlisted_candidates": shortlisted,
             "shortlist_ratio": f"{shortlist_ratio}%"
         })
+class SaveJobAPIView(generics.CreateAPIView):
+
+    serializer_class = SavedJobSerializer
+    permission_classes = [IsAuthenticated, IsCandidate]
+
+    def post(self, request):
+
+        candidate = request.user.candidate_profile
+        job_id = request.data.get("job")
+
+        try:
+            job = Job.objects.get(id=job_id)
+        except Job.DoesNotExist:
+            return Response(
+                {
+                    "success": False,
+                    "message": "Job not found."
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        if SavedJob.objects.filter(
+            candidate=candidate,
+            job=job
+        ).exists():
+            return Response(
+                {
+                    "success": False,
+                    "message": "Job already saved."
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        saved_job = SavedJob.objects.create(
+            candidate=candidate,
+            job=job
+        )
+
+        serializer = SavedJobSerializer(saved_job)
+
+        return Response(
+            {
+                "success": True,
+                "message": "Job saved successfully.",
+                "data": serializer.data
+            },
+            status=status.HTTP_201_CREATED
+        )
+class SavedJobListAPIView(generics.ListAPIView):
+
+    serializer_class = SavedJobSerializer
+    permission_classes = [IsAuthenticated, IsCandidate]
+
+    def get_queryset(self):
+
+        return SavedJob.objects.filter(
+            candidate=self.request.user.candidate_profile
+        )
+class InterviewStatusAPIView(generics.ListAPIView):
+
+    serializer_class = ApplicationHistorySerializer
+    permission_classes = [IsAuthenticated, IsCandidate]
+
+    def get_queryset(self):
+
+        candidate = self.request.user.candidate_profile
+
+        return Application.objects.filter(
+            candidate=candidate,
+            status="Interview Scheduled"
+        )
+class MatchingJobsAPIView(generics.ListAPIView):
+
+    serializer_class = JobListSerializer
+    permission_classes = [IsAuthenticated, IsCandidate]
+
+    def get_queryset(self):
+
+        candidate = self.request.user.candidate_profile
+
+        skills = candidate.skills
+
+        return Job.objects.filter(
+            status="Open",
+            skills__icontains=skills
+        )
+
+
+class SkillSuggestionAPIView(generics.ListAPIView):
+
+    serializer_class = JobListSerializer
+    permission_classes = [IsAuthenticated, IsCandidate]
+
+    def get_queryset(self):
+
+        candidate = self.request.user.candidate_profile
+
+        skills = [
+            skill.strip()
+            for skill in candidate.skills.split(",")
+            if skill.strip()
+        ]
+
+        query = Q()
+
+        for skill in skills:
+            query |= Q(skills__icontains=skill)
+
+        return Job.objects.filter(
+            status="Open"
+        ).filter(query).distinct()
+class ApplicationTimelineAPIView(generics.ListAPIView):
+
+    serializer_class = ApplicationHistorySerializer
+    permission_classes = [IsAuthenticated, IsCandidate]
+
+    def get_queryset(self):
+
+        return Application.objects.filter(
+            candidate=self.request.user.candidate_profile
+        ).order_by("-applied_at")
+class StatusNotificationAPIView(generics.ListAPIView):
+
+    serializer_class = ApplicationHistorySerializer
+    permission_classes = [IsAuthenticated, IsCandidate]
+
+    def get_queryset(self):
+
+        return Application.objects.filter(
+            candidate=self.request.user.candidate_profile
+        ).exclude(
+            status="Applied"
+        )

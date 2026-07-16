@@ -27,3 +27,14 @@ class Application(models.Model):
 
     def __str__(self):
         return f"{self.candidate.user.username} - {self.job.title}"
+
+class SavedJob(models.Model):
+    candidate = models.ForeignKey("accounts.Candidate",on_delete=models.CASCADE)
+    job = models.ForeignKey("jobs.Job",on_delete=models.CASCADE)
+    saved_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ["candidate","job"]
+    
+    def __str__(self):
+        return f"{self.candidate.user.username} saved {self.job.title}"

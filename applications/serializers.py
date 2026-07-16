@@ -1,5 +1,8 @@
 from rest_framework import serializers
-from .models import Application
+from .models import (
+    Application,
+    SavedJob,
+)
 
 class ApplicationSerializer(serializers.ModelSerializer):
     class Meta:
@@ -28,3 +31,8 @@ class ApplicationStatusSerializer(serializers.ModelSerializer):
         model = Application
         fields = ["status"]
 
+class SavedJobSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SavedJob
+        fields = "__all__"
+        read_only_fields =["candidate","saved_at"]
