@@ -3,8 +3,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
+from accounts.models import AdminAuditLog
 
-from accounts.permissions import IsEmployer
+from accounts.permissions import IsEmployer,IsAdmin
 from .models import Job
 from .serializers import (
     JobSerializer,
@@ -115,3 +116,62 @@ class LatestJobListAPIView(generics.ListAPIView):
         status="Open"
     ).order_by("-created_at")
 
+class AdminJobListAPIView(generics.ListAPIView):
+
+    serializer_class = JobSerializer
+    permission_classes = [IsAuthenticated, IsAdmin]
+
+    queryset = Job.objects.all().order_by("-created_at")
+
+class AdminDeleteJobAPIView(generics.DestroyAPIView):
+
+    permission_classes = [IsAuthenticated, IsAdmin]
+
+    queryset = Job.objects.all()
+
+    def destroy(self, request, *args, **kwargs):
+
+        job = self.get_object()
+
+        AdminAuditLog.objects.create(
+        admin=request.user,
+        action=f"Deleted job {job.title}"
+         )
+
+        job.delete()
+
+        return Response(
+            {
+                "success": True,
+                "message": "Job deleted successfully."
+            }
+        )
+class AdminJobStatusAPIView(generics.UpdateAPIView):
+
+    permission_classes = [IsAuthenticated, IsAdmin]
+
+    queryset = Job.objects.all()
+
+    serializer_class = JobSerializer
+
+    def patch(self, request, *args, **kwargs):
+
+        job = self.get_object()
+
+        if job.status == "Open":
+            job.status = "Closed"
+        else:
+            job.status = "Open"
+
+        job.save()
+        AdminAuditLog.objects.create(
+        admin=request.user,
+        action=f"Changed job '{job.title}' status to {job.status}"
+         )
+
+        return Response(
+            {
+                "success": True,
+                "message": f"Job status changed to {job.status}"
+            }
+        )

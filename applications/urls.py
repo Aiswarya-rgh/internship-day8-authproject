@@ -13,6 +13,9 @@ from .views import (
     SkillSuggestionAPIView,
     ApplicationTimelineAPIView,
     StatusNotificationAPIView,
+    PlatformStatsAPIView,
+    UserGrowthAPIView,
+    JobActivityAPIView,
 )
 
 
@@ -30,5 +33,7 @@ urlpatterns = [
     path("skill-suggestions/",SkillSuggestionAPIView.as_view(),name="skill-suggestions",),
     path("timeline/",ApplicationTimelineAPIView.as_view(),name="application-timeline",),
     path("notifications/",StatusNotificationAPIView.as_view(),name="status-notifications",),
-    
+    path("admin/platform-stats/",PlatformStatsAPIView.as_view(),name="platform-stats",), 
+    path("admin/user-growth/",UserGrowthAPIView.as_view(),name="user-growth",),
+    path("admin/job-activity/",JobActivityAPIView.as_view(),name="job-activity",),
 ]

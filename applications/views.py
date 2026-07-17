@@ -1,6 +1,7 @@
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
@@ -17,8 +18,8 @@ from .serializers import (
 from jobs.models import Job
 from jobs.serializers import JobListSerializer
 
-from accounts.permissions import IsCandidate, IsEmployer
-
+from accounts.permissions import IsCandidate, IsEmployer,IsAdmin
+from accounts.models import CustomUser, Employer, Candidate
 
 class ApplyJobAPIView(generics.CreateAPIView):
     serializer_class = ApplicationSerializer
@@ -356,3 +357,51 @@ class StatusNotificationAPIView(generics.ListAPIView):
         ).exclude(
             status="Applied"
         )
+class PlatformStatsAPIView(APIView):
+
+    permission_classes = [IsAuthenticated, IsAdmin]
+
+    def get(self, request):
+
+        return Response({
+            "total_users": CustomUser.objects.count(),
+            "total_employers": Employer.objects.count(),
+            "total_candidates": Candidate.objects.count(),
+            "total_jobs": Job.objects.count(),
+            "total_applications": Application.objects.count(),
+        })
+class UserGrowthAPIView(APIView):
+
+    permission_classes = [IsAuthenticated, IsAdmin]
+
+    def get(self, request):
+
+        return Response({
+            "total_users": CustomUser.objects.count(),
+            "total_employers": Employer.objects.count(),
+            "total_candidates": Candidate.objects.count(),
+        })
+class JobActivityAPIView(APIView):
+
+    permission_classes = [IsAuthenticated, IsAdmin]
+
+    def get(self, request):
+
+        total_jobs = Job.objects.count()
+
+        open_jobs = Job.objects.filter(
+            status="Open"
+        ).count()
+
+        closed_jobs = Job.objects.filter(
+            status="Closed"
+        ).count()
+
+        total_applications = Application.objects.count()
+
+        return Response({
+            "total_jobs": total_jobs,
+            "open_jobs": open_jobs,
+            "closed_jobs": closed_jobs,
+            "total_applications": total_applications
+        })

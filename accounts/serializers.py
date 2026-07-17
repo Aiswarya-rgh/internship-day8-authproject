@@ -1,6 +1,6 @@
 import os
 from rest_framework import serializers
-from .models import CustomUser,Employer,Candidate
+from .models import CustomUser,Employer,Candidate,AdminAuditLog
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -103,3 +103,8 @@ class UserListSerializer(serializers.ModelSerializer):
             "created_at",
             "is_verified"
         ]
+class AdminAuditLogSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = AdminAuditLog
+        fields = "__all__"

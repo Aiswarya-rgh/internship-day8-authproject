@@ -17,6 +17,7 @@ class CustomUser(AbstractUser):
     is_verified=models.BooleanField(default=False)
     created_at=models.DateTimeField(auto_now_add=True)
     updated_at=models.DateTimeField(auto_now=True)
+    is_flagged = models.BooleanField(default=False)
     def __str__(self):
         return self.email
     
@@ -52,3 +53,16 @@ class Candidate(models.Model):
     expected_salary=models.DecimalField(max_digits=10,decimal_places=2,default=0.00)
     def __str__(self):
         return self.user.email
+class AdminAuditLog(models.Model):
+
+    admin = models.ForeignKey(
+        CustomUser,
+        on_delete=models.CASCADE
+    )
+
+    action = models.CharField(max_length=255)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.admin.email} - {self.action}"
