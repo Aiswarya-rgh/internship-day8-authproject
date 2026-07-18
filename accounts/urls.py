@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import (RegisterAPIView, ProfileAPIView,ResumeUploadAPIView,EmployerDashboard,CandidateDashboard,AdminDashboard,EmployerProfileAPIView,CandidateProfileAPIView,CandidateListAPIView,UserListAPIView,ApproveEmployerAPIView,BlockUserAPIView,FlagUserAPIView,AdminAuditLogAPIView,)
+from .views import (RegisterAPIView, ProfileAPIView,ResumeUploadAPIView,EmployerDashboard,CandidateDashboard,AdminDashboard,EmployerProfileAPIView,CandidateProfileAPIView,CandidateListAPIView,UserListAPIView,ApproveEmployerAPIView,BlockUserAPIView,FlagUserAPIView,AdminAuditLogAPIView,ResumeTextAPIView,)
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -40,6 +40,6 @@ urlpatterns = [
     
     path("admin-audit-logs/",AdminAuditLogAPIView.as_view(),name="admin-audit-logs",),
 
-
+    path("resume-text/",ResumeTextAPIView.as_view(),name="resume-text",),
 ]
 

@@ -9,6 +9,12 @@ from .serializers import (RegisterSerializer,EmployerProfileSerializer,Candidate
 from .permissions import IsAdmin, IsEmployer, IsCandidate
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
+from .utils import extract_resume_text
+from accounts.permissions import IsCandidate
+from .utils import (
+    extract_resume_text,
+    clean_resume_text
+)
 
 
 class RegisterAPIView(generics.CreateAPIView):
@@ -259,3 +265,33 @@ class AdminAuditLogAPIView(generics.ListAPIView):
     serializer_class = AdminAuditLogSerializer
 
     queryset = AdminAuditLog.objects.all().order_by("-created_at")
+class ResumeTextAPIView(APIView):
+
+    permission_classes = [IsAuthenticated, IsCandidate]
+
+    def get(self, request):
+
+        candidate = request.user.candidate_profile
+
+        if not candidate.resume:
+            return Response(
+                {
+                    "success": False,
+                    "message": "Resume not uploaded."
+                },
+                status=404
+            )
+
+        file_path = candidate.resume.path
+
+        extracted_text = extract_resume_text(file_path)
+
+        cleaned_text = clean_resume_text(extracted_text)
+
+        return Response(
+       {
+        "success": True,
+        "message": "Resume text extracted successfully.",
+        "resume_text": cleaned_text
+        }
+)
