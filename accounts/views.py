@@ -13,7 +13,14 @@ from .utils import extract_resume_text
 from accounts.permissions import IsCandidate
 from .utils import (
     extract_resume_text,
-    clean_resume_text
+    clean_resume_text,
+    tokenize_text,
+    extract_skills,
+    extract_email,
+    extract_phone,
+    extract_experience,
+    extract_role,
+    extract_education,
 )
 
 
@@ -285,13 +292,36 @@ class ResumeTextAPIView(APIView):
         file_path = candidate.resume.path
 
         extracted_text = extract_resume_text(file_path)
-
         cleaned_text = clean_resume_text(extracted_text)
-
+        tokens = tokenize_text(cleaned_text)
+        skills = extract_skills(cleaned_text)
+        email = extract_email(cleaned_text)
+        phone = extract_phone(cleaned_text)
+        experience = extract_experience(cleaned_text)
+        role = extract_role(cleaned_text)
+        education = extract_education(cleaned_text)
         return Response(
-       {
+    {
         "success": True,
-        "message": "Resume text extracted successfully.",
-        "resume_text": cleaned_text
+        "message": "Resume parsed successfully.",
+
+        "resume": {
+
+            "email": email,
+
+            "phone": phone,
+
+            "role": role,
+
+            "education": education,
+
+            "experience": experience,
+
+            "skills": {
+                "count": len(skills),
+                "matched_skills": skills
+            }
+
         }
+    }
 )
