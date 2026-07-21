@@ -11,6 +11,9 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
 from .utils import extract_resume_text
 from accounts.permissions import IsCandidate
+from jobs.models import Job
+from applications.models import Application
+
 from .utils import (
     extract_resume_text,
     clean_resume_text,
@@ -21,6 +24,8 @@ from .utils import (
     extract_experience,
     extract_role,
     extract_education,
+    calculate_resume_score,
+    calculate_match_score,
 )
 
 
@@ -291,37 +296,111 @@ class ResumeTextAPIView(APIView):
 
         file_path = candidate.resume.path
 
+        # Extract Resume
         extracted_text = extract_resume_text(file_path)
         cleaned_text = clean_resume_text(extracted_text)
+
+        print("\n========== EXTRACTED TEXT ==========")
+        print(cleaned_text)
+        print("====================================\n")
+
+        # Tokenization
         tokens = tokenize_text(cleaned_text)
-        skills = extract_skills(cleaned_text)
+        print("TOKENS:", tokens)
+
+        # Skill Extraction
+        skills = extract_skills(tokens)
+        print("SKILLS:", skills)
+
+        # Other Resume Details
         email = extract_email(cleaned_text)
         phone = extract_phone(cleaned_text)
         experience = extract_experience(cleaned_text)
         role = extract_role(cleaned_text)
         education = extract_education(cleaned_text)
+
+        resume_score = calculate_resume_score(
+            skills,
+            experience,
+            education
+        )
+
+        job_id = request.query_params.get("job")
+        match_result = None
+
+        if job_id:
+
+            try:
+
+                job = Job.objects.get(id=job_id)
+
+                job_skills = job.skills.split(",")
+
+                match_result = calculate_match_score(
+                    skills,
+                    job_skills
+                )
+
+                print("\n========== DEBUG ==========")
+                print("Logged Candidate ID:", request.user.candidate_profile.id)
+                print("Requested Job ID:", job.id)
+
+                print("All Applications:")
+                print(
+                    list(
+                        Application.objects.values(
+                            "id",
+                            "candidate_id",
+                            "job_id",
+                            "ats_score"
+                        )
+                    )
+                )
+
+                try:
+
+                    application = Application.objects.get(
+                        candidate=request.user.candidate_profile,
+                        job=job
+                    )
+
+                    print("Before Save:", application.ats_score)
+
+                    application.ats_score = match_result["match_percentage"]
+                    application.save()
+
+                    application.refresh_from_db()
+
+                    print("After Save:", application.ats_score)
+
+                except Application.DoesNotExist:
+
+                    print("Application Not Found")
+
+                print("===========================\n")
+
+            except Job.DoesNotExist:
+
+                match_result = {
+                    "error": "Job not found."
+                }
+
         return Response(
-    {
-        "success": True,
-        "message": "Resume parsed successfully.",
-
-        "resume": {
-
-            "email": email,
-
-            "phone": phone,
-
-            "role": role,
-
-            "education": education,
-
-            "experience": experience,
-
-            "skills": {
-                "count": len(skills),
-                "matched_skills": skills
+            {
+                "success": True,
+                "message": "Resume parsed successfully.",
+                "resume": {
+                    "email": email,
+                    "phone": phone,
+                    "role": role,
+                    "education": education,
+                    "experience": experience,
+                    "resume_score": resume_score,
+                    "job_match": match_result,
+                    "skills": {
+                        "count": len(skills),
+                        "matched_skills": skills
+                    }
+                }
             }
-
-        }
-    }
-)
+        )

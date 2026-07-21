@@ -16,6 +16,7 @@ from .views import (
     PlatformStatsAPIView,
     UserGrowthAPIView,
     JobActivityAPIView,
+    RankedCandidatesAPIView,
 )
 
 
@@ -36,4 +37,5 @@ urlpatterns = [
     path("admin/platform-stats/",PlatformStatsAPIView.as_view(),name="platform-stats",), 
     path("admin/user-growth/",UserGrowthAPIView.as_view(),name="user-growth",),
     path("admin/job-activity/",JobActivityAPIView.as_view(),name="job-activity",),
+    path("job/<int:job_id>/ranking/",RankedCandidatesAPIView.as_view(),name="ranked-candidates",),
 ]

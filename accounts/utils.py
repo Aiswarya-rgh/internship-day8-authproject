@@ -116,19 +116,14 @@ def tokenize_text(text):
     tokens = re.findall(r'\b\w+\b', text)
 
     return tokens
-def extract_skills(text):
+def extract_skills(tokens):
 
     skills = []
 
-    text = text.lower()
+    for token in tokens:
 
-    for skill in SKILLS_LIBRARY:
-
-        pattern = r"\b" + re.escape(skill) + r"\b"
-
-        if re.search(pattern, text):
-
-            skills.append(skill)
+        if token in SKILLS_LIBRARY and token not in skills:
+            skills.append(token)
 
     return skills
 def extract_email(text):
@@ -190,3 +185,71 @@ def extract_education(text):
             return education.upper()
 
     return "Not Found"
+
+def calculate_resume_score(skills, experience, education):
+
+    score = 0
+
+    # Skill Score
+    score += len(skills) * 10
+
+    # Maximum skill score = 60
+    if score > 60:
+        score = 60
+
+    # Experience Score
+    if experience != "Not Found":
+
+        years = re.search(r"\d+", experience)
+
+        if years:
+
+            years = int(years.group())
+
+            if years >= 2:
+                score += 20
+
+    # Education Score
+    if education != "Not Found":
+        score += 20
+
+    return score
+
+def calculate_match_score(candidate_skills, job_skills):
+
+    candidate_skills = [skill.lower() for skill in candidate_skills]
+
+    job_skills = [skill.strip().lower() for skill in job_skills]
+
+    matched = []
+
+    missing = []
+
+    for skill in job_skills:
+
+        if skill in candidate_skills:
+            matched.append(skill)
+
+        else:
+            missing.append(skill)
+
+    if len(job_skills) > 0:
+
+        percentage = round(
+            (len(matched) / len(job_skills)) * 100,
+            2
+        )
+
+    else:
+
+        percentage = 0
+
+    return {
+
+        "matched_skills": matched,
+
+        "missing_skills": missing,
+
+        "match_percentage": percentage
+
+    }

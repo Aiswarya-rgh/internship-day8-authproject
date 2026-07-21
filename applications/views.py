@@ -405,3 +405,33 @@ class JobActivityAPIView(APIView):
             "closed_jobs": closed_jobs,
             "total_applications": total_applications
         })
+
+class RankedCandidatesAPIView(APIView):
+
+    permission_classes = [IsAuthenticated, IsEmployer]
+
+    def get(self, request, job_id):
+
+        employer = request.user.employer_profile
+
+        applications = (
+            Application.objects
+            .filter(job__id=job_id, job__employer=employer)
+            .order_by("-ats_score")
+        )
+
+        data = []
+
+        for application in applications:
+
+            data.append({
+
+                "candidate": application.candidate.user.email,
+
+                "status": application.status,
+
+                "ats_score": application.ats_score
+
+            })
+
+        return Response(data)
