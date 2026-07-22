@@ -17,6 +17,9 @@ from .views import (
     UserGrowthAPIView,
     JobActivityAPIView,
     RankedCandidatesAPIView,
+    BatchATSProcessingAPIView,
+    EmployerOverrideAPIView,
+    EmployerApplicantListAPIView,
 )
 
 
@@ -38,4 +41,7 @@ urlpatterns = [
     path("admin/user-growth/",UserGrowthAPIView.as_view(),name="user-growth",),
     path("admin/job-activity/",JobActivityAPIView.as_view(),name="job-activity",),
     path("job/<int:job_id>/ranking/",RankedCandidatesAPIView.as_view(),name="ranked-candidates",),
+    path("process-batch/",BatchATSProcessingAPIView.as_view()),
+    path("applications/<int:application_id>/override/",EmployerOverrideAPIView.as_view()),
+    path("job/<int:job_id>/applicants/",EmployerApplicantListAPIView.as_view()),
 ]

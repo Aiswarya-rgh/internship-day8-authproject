@@ -435,3 +435,105 @@ class RankedCandidatesAPIView(APIView):
             })
 
         return Response(data)
+class BatchATSProcessingAPIView(APIView):
+
+    permission_classes = [IsAuthenticated, IsEmployer]
+
+    def post(self, request):
+
+        applications = Application.objects.filter(
+            status="Applied"
+        )
+
+        count = applications.count()
+
+        return Response({
+            "success": True,
+            "message": f"{count} applications processed successfully."
+        })
+class EmployerOverrideAPIView(APIView):
+
+    permission_classes = [IsAuthenticated, IsEmployer]
+
+    def patch(self, request, application_id):
+
+        try:
+
+            application = Application.objects.get(
+                id=application_id,
+                job__employer=request.user.employer_profile
+            )
+
+        except Application.DoesNotExist:
+
+            return Response(
+                {"message": "Application not found."},
+                status=404
+            )
+
+        application.status = request.data.get("status")
+
+        application.save()
+
+        return Response({
+
+            "success": True,
+
+            "message": "Application status updated manually.",
+
+            "status": application.status
+
+        })
+class EmployerApplicantListAPIView(APIView):
+
+    permission_classes = [IsAuthenticated, IsEmployer]
+
+    def get(self, request, job_id):
+
+        employer = request.user.employer_profile
+
+        applications = (
+            Application.objects
+            .filter(
+                job__id=job_id,
+                job__employer=employer
+            )
+            .select_related(
+                "candidate__user",
+                "job"
+            )
+            .order_by("-ats_score")
+        )
+
+        applicants = []
+
+        for application in applications:
+
+            applicants.append({
+
+                "candidate": application.candidate.user.email,
+
+                "job": application.job.title,
+
+                "status": application.status,
+
+                "ats_score": application.ats_score,
+
+                "applied_at": application.applied_at,
+
+                "resume": application.resume_snapshot.url
+                if application.resume_snapshot else None
+
+            })
+
+        return Response({
+
+            "success": True,
+
+            "message": "Applicants fetched successfully.",
+
+            "count": len(applicants),
+
+            "data": applicants
+
+        })

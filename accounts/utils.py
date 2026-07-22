@@ -253,3 +253,43 @@ def calculate_match_score(candidate_skills, job_skills):
         "match_percentage": percentage
 
     }
+def get_role_threshold(job):
+
+    role = job.title.lower()
+
+    if "software" in role:
+        return {
+            "shortlist": 70,
+            "reject": 40
+        }
+
+    elif "frontend" in role:
+        return {
+            "shortlist": 65,
+            "reject": 35
+        }
+
+    elif "designer" in role:
+        return {
+            "shortlist": 60,
+            "reject": 30
+        }
+
+    return {
+        "shortlist": 70,
+        "reject": 40
+    }
+def get_application_status(job, ats_score):
+
+    threshold = get_role_threshold(job)
+
+    shortlist_score = threshold["shortlist"]
+    reject_score = threshold["reject"]
+
+    if ats_score >= shortlist_score:
+        return "Shortlisted"
+
+    elif ats_score < reject_score:
+        return "Rejected"
+
+    return "Applied"

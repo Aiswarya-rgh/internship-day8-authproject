@@ -26,6 +26,10 @@ from .utils import (
     extract_education,
     calculate_resume_score,
     calculate_match_score,
+    get_role_threshold,
+    get_application_status,
+
+
 )
 
 
@@ -340,6 +344,10 @@ class ResumeTextAPIView(APIView):
                     skills,
                     job_skills
                 )
+                application_status = get_application_status(
+                     job,
+                    match_result["match_percentage"]
+                )
 
                 print("\n========== DEBUG ==========")
                 print("Logged Candidate ID:", request.user.candidate_profile.id)
@@ -367,7 +375,17 @@ class ResumeTextAPIView(APIView):
                     print("Before Save:", application.ats_score)
 
                     application.ats_score = match_result["match_percentage"]
+                    application.status = application_status
                     application.save()
+
+                    if application_status == "Shortlisted":
+                       notification = "Congratulations! You have been shortlisted."
+
+                    elif application_status == "Rejected":
+                        notification = "Your application was rejected based on ATS score."
+
+                    else:
+                      notification = "Your application is under review."
 
                     application.refresh_from_db()
 
@@ -389,6 +407,8 @@ class ResumeTextAPIView(APIView):
             {
                 "success": True,
                 "message": "Resume parsed successfully.",
+                "notification": notification,
+
                 "resume": {
                     "email": email,
                     "phone": phone,
@@ -397,6 +417,8 @@ class ResumeTextAPIView(APIView):
                     "experience": experience,
                     "resume_score": resume_score,
                     "job_match": match_result,
+                    "application_status": application_status,
+
                     "skills": {
                         "count": len(skills),
                         "matched_skills": skills
