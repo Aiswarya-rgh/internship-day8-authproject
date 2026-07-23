@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
 from django.db.models import Q
+from .email_service import send_notification_email
 
 from .models import Application,SavedJob
 from .serializers import (
@@ -537,3 +538,32 @@ class EmployerApplicantListAPIView(APIView):
             "data": applicants
 
         })
+
+
+class TestEmailAPIView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+
+        send_notification_email(
+
+            subject="Application Submitted",
+
+            template_name="emails/application_submitted.txt",
+
+            context={
+                "candidate_name": request.user.username,
+                "job_title": "Python Developer"
+            },
+
+            recipient_email=request.user.email
+            
+
+        )
+
+        return Response({
+            "success": True,
+            "message": "Application email sent successfully."
+        })
+    

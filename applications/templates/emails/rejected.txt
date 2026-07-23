@@ -1,0 +1,10 @@
+Hello {{ candidate_name }},
+
+Thank you for your interest in the position of "{{ job_title }}".
+
+After reviewing your application, we regret to inform you that you have not been shortlisted.
+
+We appreciate your interest and wish you success in your future career.
+
+Best Regards,
+HR Manager

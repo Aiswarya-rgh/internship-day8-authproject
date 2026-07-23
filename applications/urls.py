@@ -20,6 +20,7 @@ from .views import (
     BatchATSProcessingAPIView,
     EmployerOverrideAPIView,
     EmployerApplicantListAPIView,
+    TestEmailAPIView,
 )
 
 
@@ -44,4 +45,5 @@ urlpatterns = [
     path("process-batch/",BatchATSProcessingAPIView.as_view()),
     path("applications/<int:application_id>/override/",EmployerOverrideAPIView.as_view()),
     path("job/<int:job_id>/applicants/",EmployerApplicantListAPIView.as_view()),
+    path("test-email/",TestEmailAPIView.as_view(),name="test-email",),
 ]
