@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
 from accounts.models import AdminAuditLog
+from django.core.cache import cache
 
 from accounts.permissions import IsEmployer,IsAdmin
 from .models import Job
@@ -25,18 +26,22 @@ class JobListAPIView(generics.ListAPIView):
     serializer_class =  JobSerializer
     permission_classes = [IsAuthenticated,IsEmployer]
     def get_queryset(self):
-        return Job.objects.filter(
-            employer=self.request.user.employer_profile
-        )
+     return Job.objects.select_related(
+        "employer"
+    ).filter(
+        employer=self.request.user.employer_profile
+    )
     
 class JobUpdateAPIView(generics.UpdateAPIView):
     serializer_class = JobSerializer
     permission_classes = [IsAuthenticated,IsEmployer]
     queryset = Job.objects.all()
     def get_queryset(self):
-        return Job.objects.filter(
-            employer=self.request.user.employer_profile
-        )
+        return Job.objects.select_related(
+        "employer"
+    ).filter(
+        employer=self.request.user.employer_profile
+    )
 
 class JobStatusAPIView(generics.UpdateAPIView):
 
@@ -44,9 +49,11 @@ class JobStatusAPIView(generics.UpdateAPIView):
     permission_classes = [IsAuthenticated, IsEmployer]
 
     def get_queryset(self):
-        return Job.objects.filter(
-            employer=self.request.user.employer_profile
-        )
+        return Job.objects.select_related(
+        "employer"
+    ).filter(
+        employer=self.request.user.employer_profile
+    )
 
     def patch(self, request, *args, **kwargs):
         job = self.get_object()
@@ -63,12 +70,15 @@ class JobStatusAPIView(generics.UpdateAPIView):
         })
 
 class PublicJobListAPIView(generics.ListAPIView):
+
     serializer_class = JobListSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = []
 
-    queryset = Job.objects.filter(status="Open")
+    queryset = Job.objects.select_related(
+        "employer"
+    ).filter(status="Open")
 
-    filter_backends = [DjangoFilterBackend,SearchFilter]
+    filter_backends = [DjangoFilterBackend, SearchFilter]
 
     filterset_fields = [
         "location",
@@ -79,32 +89,56 @@ class PublicJobListAPIView(generics.ListAPIView):
     search_fields = [
         "title",
         "description",
-        "skills"
+        "skills",
     ]
 
     def get_queryset(self):
-        queryset = Job.objects.filter(status="Open")
+
+        jobs = cache.get("public_jobs")
+
+        if jobs:
+            print("Loaded From Cache")
+            return jobs
+
+        queryset = Job.objects.select_related(
+            "employer"
+        ).filter(status="Open")
+
         skill = self.request.query_params.get("skill")
+
         if skill:
             queryset = queryset.filter(
                 skills__icontains=skill
             )
+
         salary = self.request.query_params.get("salary")
+
         if salary:
             queryset = queryset.filter(
                 salary_min__lte=salary,
                 salary_max__gte=salary
             )
-        return queryset
 
+        cache.set(
+            "public_jobs",
+            queryset,
+            timeout=300
+        )
+
+        print("Loaded From Database")
+
+        return queryset
+    
 class FeaturedJobListAPIView(generics.ListAPIView):
 
     serializer_class = JobListSerializer
     permission_classes = [IsAuthenticated]
 
-    queryset = Job.objects.filter(
-        status="Open",
-        featured=True
+    queryset = Job.objects.select_related(
+    "employer"
+    ).filter(
+    status="Open",
+    featured=True
     )
 
 class LatestJobListAPIView(generics.ListAPIView):
@@ -112,8 +146,10 @@ class LatestJobListAPIView(generics.ListAPIView):
     serializer_class = JobListSerializer
     permission_classes = [IsAuthenticated]
 
-    queryset = Job.objects.filter(
-        status="Open"
+    queryset = Job.objects.select_related(
+    "employer"
+    ).filter(
+    status="Open"
     ).order_by("-created_at")
 
 class AdminJobListAPIView(generics.ListAPIView):
@@ -121,7 +157,10 @@ class AdminJobListAPIView(generics.ListAPIView):
     serializer_class = JobSerializer
     permission_classes = [IsAuthenticated, IsAdmin]
 
-    queryset = Job.objects.all().order_by("-created_at")
+    queryset = Job.objects.select_related(
+    "employer"
+    ).order_by("-created_at")
+    
 
 class AdminDeleteJobAPIView(generics.DestroyAPIView):
 

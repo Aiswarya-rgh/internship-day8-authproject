@@ -165,3 +165,15 @@ EMAIL_HOST_USER = "aiswaryakb400@gmail.com"
 EMAIL_HOST_PASSWORD = "gbis vzrx wgsq rjsi"
 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+CACHES = {
+
+    "default": {
+
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+
+        "LOCATION": "jobportal-cache",
+
+    }
+
+}

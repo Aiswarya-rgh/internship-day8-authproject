@@ -416,9 +416,17 @@ class RankedCandidatesAPIView(APIView):
         employer = request.user.employer_profile
 
         applications = (
-            Application.objects
-            .filter(job__id=job_id, job__employer=employer)
-            .order_by("-ats_score")
+        Application.objects
+        .select_related(
+        "candidate",
+        "candidate__user",
+        "job"
+        )
+        .filter(
+        job__id=job_id,
+        job__employer=employer
+        )
+        .order_by("-ats_score")
         )
 
         data = []
@@ -494,17 +502,18 @@ class EmployerApplicantListAPIView(APIView):
         employer = request.user.employer_profile
 
         applications = (
-            Application.objects
-            .filter(
-                job__id=job_id,
-                job__employer=employer
-            )
-            .select_related(
-                "candidate__user",
-                "job"
-            )
-            .order_by("-ats_score")
-        )
+        Application.objects
+        .select_related(
+        "candidate",
+        "candidate__user",
+        "job"
+    )
+    .filter(
+        job__id=job_id,
+        job__employer=employer
+    )
+    .order_by("-ats_score")
+)
 
         applicants = []
 

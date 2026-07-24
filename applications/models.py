@@ -25,6 +25,24 @@ class Application(models.Model):
     status_updated_at = models.DateTimeField(auto_now=True)
     applied_at = models.DateTimeField(auto_now_add=True)
     ats_score = models.DecimalField(max_digits=5,decimal_places=2,default=0.00)
+    class Meta:
+
+        unique_together = ("candidate", "job")
+
+        indexes = [
+
+            models.Index(fields=["candidate"]),
+
+            models.Index(fields=["job"]),
+
+            models.Index(fields=["status"]),
+
+            models.Index(fields=["ats_score"]),
+
+            models.Index(fields=["applied_at"]),
+
+        ]
+
     def __str__(self):
         return f"{self.candidate.user.username} - {self.job.title}"
 
@@ -39,12 +57,7 @@ class SavedJob(models.Model):
     def __str__(self):
         return f"{self.candidate.user.username} saved {self.job.title}"
     
-    class Meta:
-        unique_together = ("candidate", "job")
-
-    def __str__(self):
-        return f"{self.candidate.user.email} -> {self.job.title}"
-
+   
 class NotificationLog(models.Model):
 
     recipient = models.EmailField()
@@ -62,6 +75,18 @@ class NotificationLog(models.Model):
         auto_now_add=True
     )
 
+    class Meta:
+
+        indexes = [
+
+            models.Index(fields=["recipient"]),
+
+            models.Index(fields=["status"]),
+
+            models.Index(fields=["created_at"]),
+
+        ]
+
     def __str__(self):
 
-        return self.recipient                                                                                               
+        return self.recipient          
