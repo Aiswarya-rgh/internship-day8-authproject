@@ -42,4 +42,3 @@ urlpatterns = [
 
     path("resume-text/",ResumeTextAPIView.as_view(),name="resume-text",),
 ]
-
