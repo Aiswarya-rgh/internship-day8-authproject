@@ -1,64 +1,90 @@
-from django.core.mail import send_mail
-from django.conf import settings
-from django.template.loader import render_to_string
-from .models import NotificationLog
+# ************ only while using thread inteaqd of celery*************
 
-import threading
-import time
+# from django.core.mail import send_mail
+# # from django.conf import settings
+# # from django.template.loader import render_to_string
+# # from .models import NotificationLog
+
+# # import threading
+# # import time
 
 
-def send_email_background(
-    subject,
-    template_name,
-    context,
-    recipient_email
-):
+# # def send_email_background(
+# #     subject,
+# #     template_name,
+# #     context,
+# #     recipient_email
+# # ):
 
-    retries = 3
+# #     retries = 3
 
-    while retries > 0:
+# #     while retries > 0:
 
-        try:
+# #         try:
 
-            message = render_to_string(
-                template_name,
-                context
-            )
+# #             message = render_to_string(
+# #                 template_name,
+# #                 context
+# #             )
 
-            send_mail(
-                subject=subject,
-                message=message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[recipient_email],
-                fail_silently=False,
-            )
+# #             send_mail(
+# #                 subject=subject,
+# #                 message=message,
+# #                 from_email=settings.DEFAULT_FROM_EMAIL,
+# #                 recipient_list=[recipient_email],
+# #                 fail_silently=False,
+# #             )
 
-            NotificationLog.objects.create(
-                recipient=recipient_email,
-                subject=subject,
-                status="Success"
-            )
+# #             NotificationLog.objects.create(
+# #                 recipient=recipient_email,
+# #                 subject=subject,
+# #                 status="Success"
+# #             )
 
-            print("Email Sent Successfully")
+# #             print("Email Sent Successfully")
 
-            return
+# #             return
 
-        except Exception as e:
+# #         except Exception as e:
 
-            NotificationLog.objects.create(
-                recipient=recipient_email,
-                subject=subject,
-                status="Failed",
-                error_message=str(e)
-            )
+# #             NotificationLog.objects.create(
+# #                 recipient=recipient_email,
+# #                 subject=subject,
+# #                 status="Failed",
+# #                 error_message=str(e)
+# #             )
 
-            retries -= 1
+# #             retries -= 1
 
-            print(f"Retry Left: {retries}")
+# #             print(f"Retry Left: {retries}")
 
-            time.sleep(2)
+# #             time.sleep(2)
 
-    print("Email Sending Failed")
+# #     print("Email Sending Failed")
+
+
+# # def send_notification_email(
+# #     subject,
+# #     template_name,
+# #     context,
+# #     recipient_email
+# # ):
+
+# #     thread = threading.Thread(
+# #         target=send_email_background,
+# #         args=(
+# #             subject,
+# #             template_name,
+# #             context,
+# #             recipient_email,
+# #         ),
+# #         daemon=True
+# #     )
+
+# #     thread.start()
+
+# ****using celery to send emqail*****
+from .tasks import send_email_task
 
 
 def send_notification_email(
@@ -68,15 +94,9 @@ def send_notification_email(
     recipient_email
 ):
 
-    thread = threading.Thread(
-        target=send_email_background,
-        args=(
-            subject,
-            template_name,
-            context,
-            recipient_email,
-        ),
-        daemon=True
+    send_email_task.delay(
+        subject,
+        template_name,
+        context,
+        recipient_email
     )
-
-    thread.start()

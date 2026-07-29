@@ -7,6 +7,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
 from django.db.models import Q
 from .email_service import send_notification_email
+from .eligibility import check_candidate_eligibility
+from accounts.tasks import ai_resume_analysis_task
 
 from .models import Application,SavedJob
 from .serializers import (
@@ -69,6 +71,15 @@ class ApplyJobAPIView(generics.CreateAPIView):
             job=job,
             resume_snapshot=candidate.resume
         )
+        # Check Eligibility
+        eligible, message = check_candidate_eligibility(application)
+
+        # Automatically Trigger AI Task
+        if eligible:
+          ai_resume_analysis_task.apply_async(
+            args=[application.id],
+            countdown=30
+    )
 
         serializer = ApplicationSerializer(application)
 

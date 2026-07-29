@@ -13,6 +13,9 @@ from .utils import extract_resume_text
 from accounts.permissions import IsCandidate
 from jobs.models import Job
 from applications.models import Application
+from .tasks import process_resume_task
+from .tasks import ai_resume_analysis_task
+
 
 from .utils import (
     extract_resume_text,
@@ -154,6 +157,9 @@ class ResumeUploadAPIView(APIView):
         )
         if serializer.is_valid():
             serializer.save()
+            resume_path = profile.resume.path
+            process_resume_task.delay(resume_path)
+            ai_resume_analysis_task.delay(resume_path)
 
             return Response({
                 "message": "Resume uploaded successfully.",

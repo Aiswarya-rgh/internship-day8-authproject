@@ -17,6 +17,17 @@ class Application(models.Model):
     (REJECTED, "Rejected"),
     (SELECTED, "Selected"),
 )
+    AI_QUEUED = "Queued"
+    AI_PROGRESS = "In Progress"
+    AI_COMPLETED = "Completed"
+    AI_FAILED = "Failed"
+
+    AI_STATUS_CHOICES = (
+    (AI_QUEUED, "Queued"),
+    (AI_PROGRESS, "In Progress"),
+    (AI_COMPLETED, "Completed"),
+    (AI_FAILED, "Failed"),
+)
 
     candidate = models.ForeignKey(Candidate,on_delete=models.CASCADE,related_name="applications")
     job = models.ForeignKey(Job,on_delete=models.CASCADE,related_name="applications")
@@ -25,6 +36,7 @@ class Application(models.Model):
     status_updated_at = models.DateTimeField(auto_now=True)
     applied_at = models.DateTimeField(auto_now_add=True)
     ats_score = models.DecimalField(max_digits=5,decimal_places=2,default=0.00)
+    ai_status = models.CharField(max_length=20,choices=AI_STATUS_CHOICES,default=AI_QUEUED)
     class Meta:
 
         unique_together = ("candidate", "job")
