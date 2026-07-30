@@ -21,6 +21,13 @@ from .views import (
     EmployerOverrideAPIView,
     EmployerApplicantListAPIView,
     TestEmailAPIView,
+    
+)
+
+from .transcript_views import (
+    SaveTranscriptAPIView,
+
+
 )
 
 
@@ -46,4 +53,5 @@ urlpatterns = [
     path("applications/<int:application_id>/override/",EmployerOverrideAPIView.as_view()),
     path("job/<int:job_id>/applicants/",EmployerApplicantListAPIView.as_view()),
     path("test-email/",TestEmailAPIView.as_view(),name="test-email",),
+    path("save-transcript/",SaveTranscriptAPIView.as_view()),
 ]

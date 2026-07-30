@@ -1,6 +1,7 @@
 from celery import shared_task
 from django.utils import timezone
 from applications.models import Application
+from applications.ai_models import AIInterviewSession, CallLog
 import time
 from .utils import (
     extract_resume_text,
@@ -59,11 +60,23 @@ def ai_resume_analysis_task(self, application_id):
 
     application = Application.objects.get(id=application_id)
 
+    # Get the latest interview session
+    session = AIInterviewSession.objects.filter(
+        candidate=application.candidate,
+        job=application.job
+    ).latest("started_at")
+
+    call_log = CallLog.objects.get(session=session)
+
     try:
 
-        # Update status
+        # Update AI status
         application.ai_status = Application.AI_PROGRESS
         application.save()
+
+        # Update Call Log
+        call_log.status = "In Progress"
+        call_log.save()
 
         print("=================================")
         print("AI Resume Analysis Triggered")
@@ -72,9 +85,12 @@ def ai_resume_analysis_task(self, application_id):
         # Simulate AI processing
         time.sleep(5)
 
-        # AI completed
+        # AI Completed
         application.ai_status = Application.AI_COMPLETED
         application.save()
+
+        call_log.status = "Completed"
+        call_log.save()
 
         print("AI Analysis Completed")
 
@@ -87,6 +103,9 @@ def ai_resume_analysis_task(self, application_id):
 
         application.ai_status = Application.AI_FAILED
         application.save()
+
+        call_log.status = "Failed"
+        call_log.save()
 
         print("AI Task Failed. Retrying...")
 

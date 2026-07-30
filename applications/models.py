@@ -1,6 +1,7 @@
 from django.db import models
 from accounts.models import Candidate
 from jobs.models import Job
+from .ai_models import *
 
 # Create your models here.
 class Application(models.Model):

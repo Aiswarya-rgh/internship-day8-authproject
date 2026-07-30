@@ -9,6 +9,8 @@ from django.db.models import Q
 from .email_service import send_notification_email
 from .eligibility import check_candidate_eligibility
 from accounts.tasks import ai_resume_analysis_task
+from applications.ai_models import AIInterviewSession, CallLog
+import uuid
 
 from .models import Application,SavedJob
 from .serializers import (
@@ -71,6 +73,20 @@ class ApplyJobAPIView(generics.CreateAPIView):
             job=job,
             resume_snapshot=candidate.resume
         )
+        # Create Interview Session
+        session = AIInterviewSession.objects.create(
+          candidate=candidate,
+          job=job,
+          session_id=str(uuid.uuid4())
+        )  
+
+# Create Audit Log
+        CallLog.objects.create(
+          session=session,
+          triggered_by="System",
+          trigger_reason="Candidate Eligible for AI Interview",
+          status="Queued"
+)
         # Check Eligibility
         eligible, message = check_candidate_eligibility(application)
 
