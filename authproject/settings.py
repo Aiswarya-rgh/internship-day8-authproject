@@ -9,9 +9,13 @@ https://docs.djangoproject.com/en/6.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
-
 from pathlib import Path
 from celery.schedules import crontab
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,10 +25,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-k32jcrpog+#12qwojdukm3r@!91pi-=6bdbo%v-firx*e#w88g'
-
+SECRET_KEY = os.getenv("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG") == "True"
 
 ALLOWED_HOSTS = []
 
@@ -155,18 +158,17 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 # Gmail SMTP
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = os.getenv("EMAIL_HOST")
 
-EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = int(os.getenv("EMAIL_PORT"))
 
-EMAIL_PORT = 587
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS") == "True"
 
-EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 
-EMAIL_HOST_USER = "aiswaryakb400@gmail.com"
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 
-EMAIL_HOST_PASSWORD = "gbis vzrx wgsq rjsi"
-
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
 
 CACHES = {
 
@@ -179,9 +181,9 @@ CACHES = {
     }
 
 }
-CELERY_BROKER_URL = "redis://localhost:6379/0"
+CELERY_BROKER_URL = os.getenv("REDIS_URL")
 
-CELERY_RESULT_BACKEND = "redis://localhost:6379/0"
+CELERY_RESULT_BACKEND = os.getenv("REDIS_URL")
 
 CELERY_ACCEPT_CONTENT = ["json"]
 
