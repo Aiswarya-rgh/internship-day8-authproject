@@ -21,6 +21,7 @@ from .views import (
     EmployerOverrideAPIView,
     EmployerApplicantListAPIView,
     TestEmailAPIView,
+  
     
 )
 
@@ -30,6 +31,12 @@ from .transcript_views import (
 
 )
 
+from .interview_views import (
+    StartInterviewAPIView,
+    SubmitAnswerAPIView,
+    RetrieveScoreAPIView,
+    NextQuestionAPIView,
+)
 
 urlpatterns = [
     path("apply/",ApplyJobAPIView.as_view()),
@@ -54,4 +61,9 @@ urlpatterns = [
     path("job/<int:job_id>/applicants/",EmployerApplicantListAPIView.as_view()),
     path("test-email/",TestEmailAPIView.as_view(),name="test-email",),
     path("save-transcript/",SaveTranscriptAPIView.as_view()),
+    path("submit-answer/",SubmitAnswerAPIView.as_view()),
+    path("start-interview/<str:session_id>/",StartInterviewAPIView.as_view(),),
+    path("submit-answer/",SubmitAnswerAPIView.as_view(),),
+    path("scores/<int:session_id>/",RetrieveScoreAPIView.as_view(),),
+    path("next-question/<str:session_id>/",NextQuestionAPIView.as_view(),),
 ]

@@ -12,13 +12,16 @@ from accounts.tasks import ai_resume_analysis_task
 from applications.ai_models import AIInterviewSession, CallLog
 import uuid
 
-from .models import Application,SavedJob
+from .models import Application,SavedJob,AIAnswerEvaluation, AIInterviewSession, AIQuestionTemplate
 from .serializers import (
     ApplicationSerializer,
     ApplicationHistorySerializer,
     ApplicationStatusSerializer,
     SavedJobSerializer,
+    AIAnswerEvaluationSerializer,
 )
+
+from .scoring_engine import AIScoringEngine
 
 from jobs.models import Job
 from jobs.serializers import JobListSerializer
@@ -602,4 +605,4 @@ class TestEmailAPIView(APIView):
             "success": True,
             "message": "Application email sent successfully."
         })
-    
+

@@ -2,7 +2,6 @@ from django.db import models
 from accounts.models import Candidate
 from jobs.models import Job
 
-
 class AIInterviewSession(models.Model):
 
     candidate = models.ForeignKey(
@@ -34,9 +33,36 @@ class AIInterviewSession(models.Model):
         default="In Progress"
     )
 
+    # Stores complete interview transcript
     transcript = models.JSONField(
-       default=dict,
-       blank=True
+        default=dict,
+        blank=True
+    )
+
+    # Current interview progress
+    current_question_index = models.PositiveIntegerField(
+        default=0
+    )
+
+    # Last candidate response (for follow-up questions)
+    last_response = models.TextField(
+        blank=True,
+        null=True
+    )
+
+    # Maximum questions allowed in one interview
+    max_questions = models.PositiveIntegerField(
+        default=10
+    )
+
+    # Interview timeout (minutes)
+    timeout_minutes = models.PositiveIntegerField(
+        default=30
+    )
+
+    # Whether interview was manually stopped
+    manually_stopped = models.BooleanField(
+        default=False
     )
 
     def __str__(self):

@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import (
     Application,
     SavedJob,
+    AIAnswerEvaluation,
 )
 
 class ApplicationSerializer(serializers.ModelSerializer):
@@ -36,3 +37,29 @@ class SavedJobSerializer(serializers.ModelSerializer):
         model = SavedJob
         fields = "__all__"
         read_only_fields =["candidate","saved_at"]
+
+class AIAnswerEvaluationSerializer(serializers.ModelSerializer):
+
+    class Meta:
+
+        model = AIAnswerEvaluation
+
+        fields = "__all__"
+
+        read_only_fields = [
+
+            "confidence_score",
+
+            "ai_annotation",
+
+            "relevance_score",
+
+            "completeness_score",
+
+            "keyword_score",
+
+            "final_score",
+
+            "created_at"
+
+        ]

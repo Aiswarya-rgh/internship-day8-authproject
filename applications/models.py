@@ -103,3 +103,104 @@ class NotificationLog(models.Model):
     def __str__(self):
 
         return self.recipient          
+
+class AIQuestionTemplate(models.Model):
+
+    CATEGORY_CHOICES = (
+        ("Introduction", "Introduction"),
+        ("Experience", "Experience"),
+        ("Skills", "Skills"),
+        ("Availability", "Availability"),
+        ("Salary", "Salary"),
+    )
+
+    category = models.CharField(max_length=30, choices=CATEGORY_CHOICES)
+
+    question = models.TextField()
+
+    is_active = models.BooleanField(default=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.category} - {self.question[:40]}"
+
+from jobs.models import Job
+
+class JobQuestionMapping(models.Model):
+
+    job = models.ForeignKey(
+        Job,
+        on_delete=models.CASCADE,
+        related_name="question_mappings"
+    )
+
+    question = models.ForeignKey(
+        AIQuestionTemplate,
+        on_delete=models.CASCADE
+    )
+
+    order = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        ordering = ["order"]
+
+    def __str__(self):
+        return f"{self.job.title} -> {self.question.category}"
+
+class AIAnswerEvaluation(models.Model):
+
+    session = models.ForeignKey(
+        AIInterviewSession,
+        on_delete=models.CASCADE,
+        related_name="evaluations"
+    )
+
+    question = models.ForeignKey(
+        AIQuestionTemplate,
+        on_delete=models.CASCADE
+    )
+
+    raw_answer = models.TextField()
+
+    confidence_score = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0
+    )
+
+    ai_annotation = models.TextField(
+        blank=True,
+        null=True
+    )
+
+    relevance_score = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0
+    )
+
+    completeness_score = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0
+    )
+
+    keyword_score = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0
+    )
+
+    final_score = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    def __str__(self):
+        return f"{self.session.session_id} - {self.final_score}"
