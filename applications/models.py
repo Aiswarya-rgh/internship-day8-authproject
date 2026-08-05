@@ -2,6 +2,7 @@ from django.db import models
 from accounts.models import Candidate
 from jobs.models import Job
 from .ai_models import *
+from django.utils import timezone
 
 # Create your models here.
 class Application(models.Model):
@@ -204,3 +205,84 @@ class AIAnswerEvaluation(models.Model):
 
     def __str__(self):
         return f"{self.session.session_id} - {self.final_score}"
+
+class AvailabilitySlot(models.Model):
+
+    employer = models.ForeignKey(
+        "accounts.Employer",
+        on_delete=models.CASCADE,
+        related_name="availability_slots"
+    )
+
+    role = models.ForeignKey(
+        Job,
+        on_delete=models.CASCADE,
+        related_name="available_slots"
+    )
+
+    available_date = models.DateField()
+
+    start_time = models.TimeField()
+
+    end_time = models.TimeField()
+
+    is_booked = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["available_date", "start_time"]
+
+    def __str__(self):
+        return f"{self.role.title} | {self.available_date} {self.start_time}"
+
+
+class InterviewSchedule(models.Model):
+
+    STATUS_CHOICES = (
+        ("Scheduled", "Scheduled"),
+        ("Completed", "Completed"),
+        ("Cancelled", "Cancelled"),
+        ("Rescheduled", "Rescheduled"),
+    )
+
+    application = models.OneToOneField(
+        Application,
+        on_delete=models.CASCADE,
+        related_name="interview_schedule"
+    )
+
+    slot = models.ForeignKey(
+        AvailabilitySlot,
+        on_delete=models.CASCADE,
+        related_name="interviews"
+    )
+
+    scheduled_by = models.CharField(
+        max_length=100,
+        default="AI Scheduler"
+    )
+
+    confirmation_status = models.BooleanField(default=False)
+
+    interview_status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="Scheduled"
+    )
+
+    scheduled_at = models.DateTimeField(
+        default=timezone.now
+    )
+
+    remarks = models.TextField(
+        blank=True,
+        null=True
+    )
+
+    reminder_24_sent = models.BooleanField(default=False)
+
+    reminder_1hr_sent = models.BooleanField(default=False)
+    
+    def __str__(self):
+        return f"{self.application.candidate.user.username} - {self.slot.available_date}"

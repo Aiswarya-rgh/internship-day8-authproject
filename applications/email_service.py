@@ -85,7 +85,8 @@
 
 # ****using celery to send emqail*****
 from .tasks import send_email_task
-
+from django.core.mail import send_mail
+from django.conf import settings
 
 def send_notification_email(
     subject,
@@ -100,3 +101,40 @@ def send_notification_email(
         context,
         recipient_email
     )
+
+class InterviewEmailService:
+
+    @staticmethod
+    def send_confirmation(schedule):
+
+        candidate = schedule.application.candidate
+
+        job = schedule.application.job
+
+        subject = "Interview Scheduled Successfully"
+
+        message = f"""
+Hello {candidate.user.first_name},
+
+Your interview has been scheduled.
+
+Job Role : {job.title}
+
+Date : {schedule.slot.available_date}
+
+Time :
+{schedule.slot.start_time} - {schedule.slot.end_time}
+
+Please be available on time.
+
+Best Regards,
+AI Recruitment Team
+"""
+
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            [candidate.user.email],
+            fail_silently=False,
+        )

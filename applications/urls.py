@@ -38,6 +38,9 @@ from .interview_views import (
     NextQuestionAPIView,
 )
 
+from .scheduling_views import ScheduleInterviewAPIView,RescheduleInterviewAPIView,ConfirmInterviewAPIView
+
+
 urlpatterns = [
     path("apply/",ApplyJobAPIView.as_view()),
     path("history/",ApplicationHistoryAPIView.as_view()),
@@ -66,4 +69,8 @@ urlpatterns = [
     path("submit-answer/",SubmitAnswerAPIView.as_view(),),
     path("scores/<int:session_id>/",RetrieveScoreAPIView.as_view(),),
     path("next-question/<str:session_id>/",NextQuestionAPIView.as_view(),),
+    path("schedule-interview/",ScheduleInterviewAPIView.as_view()),
+    path("reschedule-interview/",RescheduleInterviewAPIView.as_view(),name="reschedule-interview",),
+    path("confirm-interview/",ConfirmInterviewAPIView.as_view(),name="confirm-interview",),
+
 ]

@@ -3,6 +3,8 @@ from .models import (
     Application,
     SavedJob,
     AIAnswerEvaluation,
+    AvailabilitySlot,
+    InterviewSchedule,
 )
 
 class ApplicationSerializer(serializers.ModelSerializer):
@@ -62,4 +64,63 @@ class AIAnswerEvaluationSerializer(serializers.ModelSerializer):
 
             "created_at"
 
+        ]
+
+class AvailabilitySlotSerializer(serializers.ModelSerializer):
+
+    class Meta:
+
+        model = AvailabilitySlot
+
+        fields = "__all__"
+
+        read_only_fields = [
+            "is_booked",
+            "created_at",
+        ]
+
+
+class InterviewScheduleSerializer(serializers.ModelSerializer):
+
+    candidate = serializers.CharField(
+        source="application.candidate.user.username",
+        read_only=True
+    )
+
+    job = serializers.CharField(
+        source="application.job.title",
+        read_only=True
+    )
+
+    interview_date = serializers.DateField(
+        source="slot.available_date",
+        read_only=True
+    )
+
+    start_time = serializers.TimeField(
+        source="slot.start_time",
+        read_only=True
+    )
+
+    end_time = serializers.TimeField(
+        source="slot.end_time",
+        read_only=True
+    )
+
+    class Meta:
+
+        model = InterviewSchedule
+
+        fields = [
+            "id",
+            "candidate",
+            "job",
+            "interview_date",
+            "start_time",
+            "end_time",
+            "scheduled_by",
+            "confirmation_status",
+            "interview_status",
+            "scheduled_at",
+            "remarks",
         ]
