@@ -5,6 +5,7 @@ from .models import (
     AIAnswerEvaluation,
     AvailabilitySlot,
     InterviewSchedule,
+    ReminderLog,
 )
 
 class ApplicationSerializer(serializers.ModelSerializer):
@@ -124,3 +125,10 @@ class InterviewScheduleSerializer(serializers.ModelSerializer):
             "scheduled_at",
             "remarks",
         ]
+class ReminderLogSerializer(serializers.ModelSerializer):
+
+    class Meta:
+
+        model=ReminderLog
+
+        fields="__all__"

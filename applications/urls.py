@@ -28,7 +28,6 @@ from .views import (
 from .transcript_views import (
     SaveTranscriptAPIView,
 
-
 )
 
 from .interview_views import (
@@ -39,7 +38,7 @@ from .interview_views import (
 )
 
 from .scheduling_views import ScheduleInterviewAPIView,RescheduleInterviewAPIView,ConfirmInterviewAPIView
-
+from .reminder_views import ReminderLogAPIView
 
 urlpatterns = [
     path("apply/",ApplyJobAPIView.as_view()),
@@ -72,5 +71,6 @@ urlpatterns = [
     path("schedule-interview/",ScheduleInterviewAPIView.as_view()),
     path("reschedule-interview/",RescheduleInterviewAPIView.as_view(),name="reschedule-interview",),
     path("confirm-interview/",ConfirmInterviewAPIView.as_view(),name="confirm-interview",),
+    path("reminder-logs/",ReminderLogAPIView.as_view(),name="reminder-logs"),
 
 ]

@@ -202,4 +202,13 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 30.0,   # Every 30 seconds
     },
 
+    "interview-reminder-scan": {
+
+     "task": "applications.tasks.send_interview_reminders",
+    "schedule": crontab(
+        minute="*/30"
+    ),
+
+},
+
 }

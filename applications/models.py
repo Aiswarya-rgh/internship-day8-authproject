@@ -283,6 +283,33 @@ class InterviewSchedule(models.Model):
     reminder_24_sent = models.BooleanField(default=False)
 
     reminder_1hr_sent = models.BooleanField(default=False)
-    
+
     def __str__(self):
         return f"{self.application.candidate.user.username} - {self.slot.available_date}"
+class ReminderLog(models.Model):
+
+    interview = models.ForeignKey(
+        InterviewSchedule,
+        on_delete=models.CASCADE
+    )
+
+    reminder_type = models.CharField(
+        max_length=30
+    )
+
+    sent_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    status = models.CharField(
+        max_length=30,
+        default="Success"
+    )
+
+    failure_reason = models.TextField(
+        blank=True,
+        null=True
+    )
+
+    def __str__(self):
+        return f"{self.interview.id}-{self.status}"

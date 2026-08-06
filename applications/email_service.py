@@ -138,3 +138,43 @@ AI Recruitment Team
             [candidate.user.email],
             fail_silently=False,
         )
+
+@staticmethod
+def send_reminder(interview, reminder_type):
+
+    subject = f"Interview Reminder ({reminder_type})"
+
+    body = f"""
+Hello {interview.application.candidate.user.first_name},
+
+This is a reminder for your interview.
+
+Job: {interview.application.job.title}
+
+Date: {interview.slot.available_date}
+
+Time: {interview.slot.start_time}
+
+Please be available.
+
+Regards,
+AI Recruitment System
+"""
+
+    from .tasks import send_email_task
+
+    send_email_task.delay(
+        interview.application.candidate.user.email,
+        subject,
+        body
+    )
+
+    return True
+@staticmethod
+def send_voice_reminder(interview):
+
+        print(
+            f"Voice reminder queued for {interview.application.candidate.user.email}"
+        )
+
+        return True
