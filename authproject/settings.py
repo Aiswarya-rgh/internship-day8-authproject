@@ -41,11 +41,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'accounts',
     'rest_framework',
     'django_filters',
+    'accounts',
     'jobs',
     'applications',
+    'analytics',
     'django_celery_beat',
 ]
 from datetime import timedelta
