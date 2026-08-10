@@ -14,6 +14,14 @@ from celery.schedules import crontab
 import os
 from dotenv import load_dotenv
 
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Logging directory
+LOG_DIR = BASE_DIR / "logs"
+
+LOG_DIR.mkdir(exist_ok=True)
+
 load_dotenv()
 
 
@@ -47,6 +55,7 @@ INSTALLED_APPS = [
     'jobs',
     'applications',
     'analytics',
+    'audit_logs',
     'django_celery_beat',
 ]
 from datetime import timedelta
@@ -80,6 +89,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'audit_logs.middleware.AuditLoggingMiddleware',
 ]
 
 ROOT_URLCONF = 'authproject.urls'
@@ -212,4 +222,58 @@ CELERY_BEAT_SCHEDULE = {
 
 },
 
+}
+
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+
+    "formatters": {
+        "verbose": {
+            "format": "{asctime} [{levelname}] {name}: {message}",
+            "style": "{",
+        },
+    },
+
+    "handlers": {
+        "application_file": {
+            "level": "INFO",
+            "class": "logging.FileHandler",
+            "filename": os.path.join(LOG_DIR, "application.log"),
+            "formatter": "verbose",
+        },
+
+        "console": {
+            "level": "INFO",
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+    },
+
+    "loggers": {
+        "django": {
+            "handlers": ["application_file", "console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+
+        "applications": {
+            "handlers": ["application_file", "console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+
+        "accounts": {
+            "handlers": ["application_file", "console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+
+        "audit_logs": {
+            "handlers": ["application_file", "console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
 }

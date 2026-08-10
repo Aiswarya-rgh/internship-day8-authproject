@@ -2,12 +2,12 @@ from celery import shared_task
 from django.core.mail import send_mail
 from django.conf import settings
 from django.template.loader import render_to_string
+
 from .reminder_service import ReminderService
-
-
 from .models import NotificationLog
 from .models import ReminderLog
-import time
+
+from audit_logs.services import AuditLogService
 
 
 @shared_task(bind=True, max_retries=3)
@@ -40,6 +40,12 @@ def send_email_task(
             status="Success"
         )
 
+        # Centralized application log
+        AuditLogService.application(
+            action="Email sent successfully",
+            description=f"Email subject: {subject}"
+        )
+
         print("Email Sent Successfully")
 
     except Exception as e:
@@ -51,20 +57,28 @@ def send_email_task(
             error_message=str(e)
         )
 
+        # Centralized error log
+        AuditLogService.error(
+            action="Email sending failed",
+            exception=e
+        )
+
+        # Centralized retry log
+        AuditLogService.retry(
+            action="Email retry",
+            failure_reason=str(e)
+        )
+
         print("Retrying Email...")
 
         raise self.retry(
             exc=e,
             countdown=2
         )
-from celery import shared_task
 
 
 @shared_task(bind=True, max_retries=3)
 def send_interview_reminders(self):
-
-    from .email_service import InterviewEmailService
-
 
     reminders = ReminderService.get_pending_reminders()
 
@@ -72,21 +86,29 @@ def send_interview_reminders(self):
 
         try:
 
+            from .email_service import InterviewEmailService
+
             InterviewEmailService.send_reminder(
                 interview,
                 reminder_type
             )
 
-            # Success Log
+            # Existing reminder log
             ReminderLog.objects.create(
                 interview=interview,
                 reminder_type=reminder_type,
                 status="Success"
             )
 
+            # Centralized AI/event log
+            AuditLogService.ai_event(
+                action="Interview reminder sent",
+                description=f"Reminder type: {reminder_type}"
+            )
+
         except Exception as exc:
 
-            # Failure Log
+            # Existing failure log
             ReminderLog.objects.create(
                 interview=interview,
                 reminder_type=reminder_type,
@@ -94,8 +116,19 @@ def send_interview_reminders(self):
                 failure_reason=str(exc)
             )
 
+            # Centralized error log
+            AuditLogService.error(
+                action="Interview reminder failed",
+                exception=exc
+            )
+
+            # Centralized retry log
+            AuditLogService.retry(
+                action="Interview reminder retry",
+                failure_reason=str(exc)
+            )
+
             raise self.retry(
                 exc=exc,
                 countdown=60
             )
-
