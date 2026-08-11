@@ -1,16 +1,17 @@
 from django.urls import path
 
-from .views import (RegisterAPIView, ProfileAPIView,ResumeUploadAPIView,EmployerDashboard,CandidateDashboard,AdminDashboard,EmployerProfileAPIView,CandidateProfileAPIView,CandidateListAPIView,UserListAPIView,ApproveEmployerAPIView,BlockUserAPIView,FlagUserAPIView,AdminAuditLogAPIView,ResumeTextAPIView,)
+from .views import (RegisterAPIView,SecureLoginAPIView, ProfileAPIView,ResumeUploadAPIView,EmployerDashboard,CandidateDashboard,AdminDashboard,EmployerProfileAPIView,CandidateProfileAPIView,CandidateListAPIView,UserListAPIView,ApproveEmployerAPIView,BlockUserAPIView,FlagUserAPIView,AdminAuditLogAPIView,ResumeTextAPIView,)
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
 
+
 urlpatterns = [
 
     path("signup/", RegisterAPIView.as_view()),
 
-    path("login/", TokenObtainPairView.as_view()),
+    path("login/", SecureLoginAPIView.as_view()),
 
     path("refresh/", TokenRefreshView.as_view()),
 

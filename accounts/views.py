@@ -34,11 +34,17 @@ from .utils import (
 
 
 )
+from rest_framework_simplejwt.views import TokenObtainPairView
+
+from security_hardening.throttles import LoginRateThrottle
 
 
 class RegisterAPIView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = RegisterSerializer
+
+class SecureLoginAPIView(TokenObtainPairView):
+    throttle_classes = [LoginRateThrottle]
 
 
 class ProfileAPIView(APIView):

@@ -22,11 +22,14 @@ LOG_DIR = BASE_DIR / "logs"
 
 LOG_DIR.mkdir(exist_ok=True)
 
-load_dotenv()
+load_dotenv(BASE_DIR / "authproject" / ".env")
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+#encryption
+DATA_ENCRYPTION_KEY = os.getenv("DATA_ENCRYPTION_KEY")
 
 
 # Quick-start development settings - unsuitable for production
@@ -56,6 +59,7 @@ INSTALLED_APPS = [
     'applications',
     'analytics',
     'audit_logs',
+    'security_hardening',
     'django_celery_beat',
 ]
 from datetime import timedelta
@@ -67,13 +71,28 @@ REST_FRAMEWORK = {
 
     "EXCEPTION_HANDLER": "accounts.exceptions.custom_exception_handler",
 
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "DEFAULT_PERMISSION_CLASSES": (
+        "rest_framework.permissions.IsAuthenticated",
+    ),
+
+    "DEFAULT_THROTTLE_CLASSES": (
+        "security_hardening.throttles.LoginRateThrottle",
+        "security_hardening.throttles.AuthenticatedAPIRateThrottle",
+    ),
+
+    "DEFAULT_THROTTLE_RATES": {
+        "login": "5/minute",
+        "authenticated": "100/minute",
+    },
+
+    "DEFAULT_PAGINATION_CLASS":
+        "rest_framework.pagination.PageNumberPagination",
 
     "PAGE_SIZE": 5,
 
     "DEFAULT_FILTER_BACKENDS": [
-    "django_filters.rest_framework.DjangoFilterBackend",
-],
+        "django_filters.rest_framework.DjangoFilterBackend",
+    ],
 }
 
 SIMPLE_JWT = {

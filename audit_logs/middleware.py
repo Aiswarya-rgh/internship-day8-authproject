@@ -37,11 +37,13 @@ class AuditLoggingMiddleware:
                 else None
             )
 
-            AuditLogService.error(
+            AuditLogService.log_error(
                 action="Unhandled application exception",
-                exception=exc,
-                user=user,
-                endpoint=request.path,
+                description=(
+                    f"Endpoint: {request.path} | "
+                    f"User: {user}"
+                ),
+                failure_reason=str(exc),
             )
 
             raise

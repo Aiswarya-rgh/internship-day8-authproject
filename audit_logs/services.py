@@ -1,6 +1,10 @@
 from .models import AuditLog
 import logging
 
+
+logger = logging.getLogger("audit_logs")
+
+
 class AuditLogService:
 
     @staticmethod
@@ -62,6 +66,12 @@ class AuditLogService:
         user=None,
         endpoint=None,
     ):
+        logger.error(
+            "%s | %s",
+            action,
+            exception,
+        )
+
         return AuditLogService.log(
             event_type="ERROR",
             action=action,
@@ -69,6 +79,30 @@ class AuditLogService:
             user=user,
             description=str(exception),
             failure_reason=str(exception),
+            endpoint=endpoint,
+        )
+
+    @staticmethod
+    def log_error(
+        action,
+        description="",
+        failure_reason="",
+        user=None,
+        endpoint=None,
+    ):
+        logger.error(
+            "%s | %s",
+            action,
+            failure_reason,
+        )
+
+        return AuditLogService.log(
+            event_type="ERROR",
+            action=action,
+            status="FAILED",
+            user=user,
+            description=description,
+            failure_reason=failure_reason,
             endpoint=endpoint,
         )
 
@@ -128,27 +162,4 @@ class AuditLogService:
             action=action,
             user=user,
             description=description,
-        )
-from .models import AuditLog
-
-
-logger = logging.getLogger("audit_logs")
-
-
-class AuditLogService:
-
-    @staticmethod
-    def log_error(action, description="", failure_reason=""):
-        logger.error(
-            "%s | %s",
-            action,
-            failure_reason
-        )
-
-        return AuditLog.objects.create(
-            event_type="ERROR",
-            action=action,
-            status="Failed",
-            description=description,
-            failure_reason=failure_reason,
         )
