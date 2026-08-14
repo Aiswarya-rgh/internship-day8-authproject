@@ -3,13 +3,18 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 
+from billing.permissions import HasAIAnalytics
+
 from .models import Application
 from .report_service import CandidateReportService
 
 
 class CandidateReportAPIView(APIView):
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [
+        IsAuthenticated,
+        HasAIAnalytics,
+    ]
 
     def get(self, request, application_id):
 

@@ -3,6 +3,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 
+from billing.permissions import  HasAIInterviewEvaluation,HasActiveSubscription
+
 from .ai_models import AIInterviewSession
 from .models import (
     AIQuestionTemplate,
@@ -19,7 +21,10 @@ class StartInterviewAPIView(APIView):
     Returns the first/current interview question
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [
+    IsAuthenticated,
+    HasAIInterviewEvaluation,
+]
 
     def get(self, request, session_id):
 
@@ -67,7 +72,10 @@ class SubmitAnswerAPIView(APIView):
     Stores answer and evaluates it.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [
+        IsAuthenticated,
+        HasActiveSubscription,
+    ]
 
     def post(self, request):
 
@@ -146,7 +154,10 @@ class RetrieveScoreAPIView(APIView):
     Returns all evaluated answers for one interview.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [
+        IsAuthenticated,
+        HasActiveSubscription,
+    ]
 
     def get(self, request, session_id):
 
@@ -173,7 +184,10 @@ class NextQuestionAPIView(APIView):
     Returns the next interview question.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [
+        IsAuthenticated,
+        HasActiveSubscription,
+    ]
 
     def get(self, request, session_id):
 

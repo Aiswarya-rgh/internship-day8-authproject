@@ -6,42 +6,55 @@ from rest_framework.filters import SearchFilter
 from accounts.models import AdminAuditLog
 from django.core.cache import cache
 
-from accounts.permissions import IsEmployer,IsAdmin
+from accounts.permissions import IsEmployer, IsAdmin
+from billing.permissions import HasActiveSubscription
 from .models import Job
 from .serializers import (
     JobSerializer,
-    JobListSerializer,)
+    JobListSerializer,
+)
 
 # Create your views here.
+
+
 class JobCreateAPIView(generics.CreateAPIView):
     serializer_class = JobSerializer
-    permission_classes = [IsAuthenticated,IsEmployer]
-    
+    permission_classes = [
+        IsAuthenticated,
+        IsEmployer,
+        HasActiveSubscription,
+    ]
+
     def perform_create(self, serializer):
         serializer.save(
             employer=self.request.user.employer_profile
         )
 
+
 class JobListAPIView(generics.ListAPIView):
-    serializer_class =  JobSerializer
-    permission_classes = [IsAuthenticated,IsEmployer]
-    def get_queryset(self):
-     return Job.objects.select_related(
-        "employer"
-    ).filter(
-        employer=self.request.user.employer_profile
-    )
-    
-class JobUpdateAPIView(generics.UpdateAPIView):
     serializer_class = JobSerializer
-    permission_classes = [IsAuthenticated,IsEmployer]
-    queryset = Job.objects.all()
+    permission_classes = [IsAuthenticated, IsEmployer]
+
     def get_queryset(self):
         return Job.objects.select_related(
-        "employer"
-    ).filter(
-        employer=self.request.user.employer_profile
-    )
+            "employer"
+        ).filter(
+            employer=self.request.user.employer_profile
+        )
+
+
+class JobUpdateAPIView(generics.UpdateAPIView):
+    serializer_class = JobSerializer
+    permission_classes = [IsAuthenticated, IsEmployer]
+    queryset = Job.objects.all()
+
+    def get_queryset(self):
+        return Job.objects.select_related(
+            "employer"
+        ).filter(
+            employer=self.request.user.employer_profile
+        )
+
 
 class JobStatusAPIView(generics.UpdateAPIView):
 
@@ -50,10 +63,10 @@ class JobStatusAPIView(generics.UpdateAPIView):
 
     def get_queryset(self):
         return Job.objects.select_related(
-        "employer"
-    ).filter(
-        employer=self.request.user.employer_profile
-    )
+            "employer"
+        ).filter(
+            employer=self.request.user.employer_profile
+        )
 
     def patch(self, request, *args, **kwargs):
         job = self.get_object()
@@ -68,6 +81,7 @@ class JobStatusAPIView(generics.UpdateAPIView):
         return Response({
             "message": f"Job status changed to {job.status}"
         })
+
 
 class PublicJobListAPIView(generics.ListAPIView):
 
@@ -128,18 +142,20 @@ class PublicJobListAPIView(generics.ListAPIView):
         print("Loaded From Database")
 
         return queryset
-    
+
+
 class FeaturedJobListAPIView(generics.ListAPIView):
 
     serializer_class = JobListSerializer
     permission_classes = [IsAuthenticated]
 
     queryset = Job.objects.select_related(
-    "employer"
+        "employer"
     ).filter(
-    status="Open",
-    featured=True
+        status="Open",
+        featured=True
     )
+
 
 class LatestJobListAPIView(generics.ListAPIView):
 
@@ -147,10 +163,11 @@ class LatestJobListAPIView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     queryset = Job.objects.select_related(
-    "employer"
+        "employer"
     ).filter(
-    status="Open"
+        status="Open"
     ).order_by("-created_at")
+
 
 class AdminJobListAPIView(generics.ListAPIView):
 
@@ -158,9 +175,9 @@ class AdminJobListAPIView(generics.ListAPIView):
     permission_classes = [IsAuthenticated, IsAdmin]
 
     queryset = Job.objects.select_related(
-    "employer"
+        "employer"
     ).order_by("-created_at")
-    
+
 
 class AdminDeleteJobAPIView(generics.DestroyAPIView):
 
@@ -173,9 +190,9 @@ class AdminDeleteJobAPIView(generics.DestroyAPIView):
         job = self.get_object()
 
         AdminAuditLog.objects.create(
-        admin=request.user,
-        action=f"Deleted job {job.title}"
-         )
+            admin=request.user,
+            action=f"Deleted job {job.title}"
+        )
 
         job.delete()
 
@@ -185,6 +202,8 @@ class AdminDeleteJobAPIView(generics.DestroyAPIView):
                 "message": "Job deleted successfully."
             }
         )
+
+
 class AdminJobStatusAPIView(generics.UpdateAPIView):
 
     permission_classes = [IsAuthenticated, IsAdmin]
@@ -203,10 +222,11 @@ class AdminJobStatusAPIView(generics.UpdateAPIView):
             job.status = "Open"
 
         job.save()
+
         AdminAuditLog.objects.create(
-        admin=request.user,
-        action=f"Changed job '{job.title}' status to {job.status}"
-         )
+            admin=request.user,
+            action=f"Changed job '{job.title}' status to {job.status}"
+        )
 
         return Response(
             {

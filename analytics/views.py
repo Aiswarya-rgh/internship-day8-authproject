@@ -4,13 +4,14 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from billing.permissions import HasPremiumAnalytics
 
 from .services import AnalyticsService
 
 
 class FunnelAPIView(APIView):
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated,HasPremiumAnalytics]
 
     def get(self, request):
 
@@ -25,7 +26,10 @@ class FunnelAPIView(APIView):
 
 class JobPerformanceAPIView(APIView):
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [
+    IsAuthenticated,
+    HasPremiumAnalytics,
+]
 
     def get(self, request):
 
@@ -40,7 +44,10 @@ class JobPerformanceAPIView(APIView):
 
 class ConversionAPIView(APIView):
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [
+    IsAuthenticated,
+    HasPremiumAnalytics,
+]
 
     def get(self, request):
 
@@ -55,7 +62,7 @@ class ConversionAPIView(APIView):
 
 class TimeStatsAPIView(APIView):
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated,HasPremiumAnalytics]
 
     def get(self, request):
 
@@ -70,7 +77,10 @@ class TimeStatsAPIView(APIView):
 
 class RoleMetricsAPIView(APIView):
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [
+    IsAuthenticated,
+    HasPremiumAnalytics,
+]
 
     def get(self, request):
 

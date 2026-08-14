@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'applications',
     'analytics',
     'audit_logs',
+    'billing',
     'security_hardening',
     'django_celery_beat',
 ]

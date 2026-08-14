@@ -27,6 +27,7 @@ from jobs.models import Job
 from jobs.serializers import JobListSerializer
 
 from accounts.permissions import IsCandidate, IsEmployer,IsAdmin
+from billing.permissions import HasAIMatching
 from accounts.models import CustomUser, Employer, Candidate
 
 class ApplyJobAPIView(generics.CreateAPIView):
@@ -326,10 +327,14 @@ class InterviewStatusAPIView(generics.ListAPIView):
             candidate=candidate,
             status="Interview Scheduled"
         )
-class MatchingJobsAPIView(generics.ListAPIView):
 
+class MatchingJobsAPIView(generics.ListAPIView):
     serializer_class = JobListSerializer
-    permission_classes = [IsAuthenticated, IsCandidate]
+    permission_classes = [
+        IsAuthenticated,
+        IsCandidate,
+        HasAIMatching
+    ]
 
     def get_queryset(self):
 
@@ -342,11 +347,13 @@ class MatchingJobsAPIView(generics.ListAPIView):
             skills__icontains=skills
         )
 
-
 class SkillSuggestionAPIView(generics.ListAPIView):
-
     serializer_class = JobListSerializer
-    permission_classes = [IsAuthenticated, IsCandidate]
+    permission_classes = [
+        IsAuthenticated,
+        IsCandidate,
+        HasAIMatching
+    ]
 
     def get_queryset(self):
 
@@ -366,6 +373,7 @@ class SkillSuggestionAPIView(generics.ListAPIView):
         return Job.objects.filter(
             status="Open"
         ).filter(query).distinct()
+    
 class ApplicationTimelineAPIView(generics.ListAPIView):
 
     serializer_class = ApplicationHistorySerializer

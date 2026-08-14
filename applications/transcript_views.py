@@ -1,12 +1,27 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+
+from billing.permissions import HasActiveSubscription
+from .question_service import QuestionFlowService
 
 from .ai_models import AIInterviewSession
 from .models import JobQuestionMapping
 
+class InterviewFlow:
+
+    @staticmethod
+    def is_completed(session):
+
+        return session.current_question_index >= session.max_questions
 
 class SaveTranscriptAPIView(APIView):
+
+    permission_classes = [
+        IsAuthenticated,
+        HasActiveSubscription,
+    ]
 
     def post(self, request):
 
