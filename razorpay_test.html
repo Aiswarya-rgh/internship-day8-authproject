@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+```
+<title>Razorpay Test Payment</title>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        max-width: 700px;
+        margin: 60px auto;
+        padding: 30px;
+    }
+
+    button {
+        padding: 12px 24px;
+        background: #2563eb;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    button:hover {
+        background: #1d4ed8;
+    }
+
+    #result {
+        margin-top: 30px;
+        padding: 20px;
+        background: #f3f4f6;
+        white-space: pre-wrap;
+        word-break: break-word;
+        border-radius: 6px;
+    }
+</style>
+```
+
+</head>
+
+<body>
+
+```
+<h1>Razorpay Test Payment</h1>
+
+<p>
+    Temporary frontend used only to test the Django Razorpay backend.
+</p>
+
+<p>
+    <strong>Plan:</strong> PRO
+</p>
+
+<p>
+    <strong>Amount:</strong> ₹499
+</p>
+
+<button onclick="startPayment()">
+    Pay ₹499
+</button>
+
+<div id="result">
+    Click "Pay ₹499" to start the Razorpay test checkout.
+</div>
+```
+
+<script>
+
+const BASE_URL = "http://127.0.0.1:8000";
+
+
+// --------------------------------------------------
+// PUT A FRESH DJANGO ACCESS TOKEN HERE
+// --------------------------------------------------
+
+const AUTH_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzg2NzYyNzU2LCJpYXQiOjE3ODY3NjA5NTYsImp0aSI6ImM4OGYyOWExYjRhNTQyYjk5YmFkMjlkYmM5NDE3ZmQzIiwidXNlcl9pZCI6IjIyIn0.NIgbH1BvouFDAldmEN2c8SwibS57AiFlVpmA7dEjYZs";
+
+
+// --------------------------------------------------
+// PRO PLAN
+// --------------------------------------------------
+
+const PLAN_ID = 2;
+
+
+// --------------------------------------------------
+// DISPLAY RESULT
+// --------------------------------------------------
+
+function showResult(message) {
+
+    document.getElementById("result").innerText = message;
+
+}
+
+
+// --------------------------------------------------
+// CREATE ORDER
+// --------------------------------------------------
+
+async function startPayment() {
+
+    showResult("Creating Razorpay order...");
+
+    try {
+
+        const response = await fetch(
+            `${BASE_URL}/api/billing/payment/create-order/`,
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${AUTH_TOKEN}`
+                },
+
+                body: JSON.stringify({
+                    plan_id: PLAN_ID
+                })
+            }
+        );
+
+
+        const data = await response.json();
+
+
+        console.log(
+            "Create order response:",
+            data
+        );
+
+
+        if (!response.ok || !data.success) {
+
+            showResult(
+                "Order creation failed:\n\n" +
+                JSON.stringify(
+                    data,
+                    null,
+                    2
+                )
+            );
+
+            return;
+        }
+
+
+        showResult(
+            "Order created successfully.\n\n" +
+            JSON.stringify(
+                data,
+                null,
+                2
+            ) +
+            "\n\nOpening Razorpay Checkout..."
+        );
+
+
+        openRazorpayCheckout(data);
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        showResult(
+            "Error creating order:\n\n" +
+            error.message
+        );
+    }
+}
+
+
+// --------------------------------------------------
+// OPEN RAZORPAY CHECKOUT
+// --------------------------------------------------
+
+function openRazorpayCheckout(orderData) {
+
+    const options = {
+
+        key: orderData.razorpay_key_id,
+
+        amount: orderData.order.amount,
+
+        currency: orderData.order.currency,
+
+        name: "ZecPath AI Job Portal",
+
+        description: "PRO Subscription",
+
+        order_id: orderData.order.id,
+
+
+        // --------------------------------------------------
+        // THIS IS WHERE RAZORPAY RETURNS THE 3 VALUES
+        // --------------------------------------------------
+
+        handler: function (razorpayResponse) {
+
+            console.log(
+                "RAZORPAY CHECKOUT RESPONSE:"
+            );
+
+            console.log(
+                razorpayResponse
+            );
+
+
+            showResult(
+                "TEST PAYMENT SUCCESSFUL!\n\n" +
+
+                "razorpay_order_id:\n" +
+                razorpayResponse.razorpay_order_id +
+
+                "\n\nrazorpay_payment_id:\n" +
+                razorpayResponse.razorpay_payment_id +
+
+                "\n\nrazorpay_signature:\n" +
+                razorpayResponse.razorpay_signature +
+
+                "\n\nSending these values to Django for verification..."
+            );
+
+
+            verifyPayment(
+                razorpayResponse
+            );
+
+        },
+
+
+        prefill: {
+
+            name: "Test User",
+
+            email: "test@example.com",
+
+            contact: "9999999999"
+
+        },
+
+
+        theme: {
+
+            color: "#2563eb"
+
+        }
+
+    };
+
+
+    const razorpay = new Razorpay(
+        options
+    );
+
+
+    // --------------------------------------------------
+    // PAYMENT FAILED
+    // --------------------------------------------------
+
+    razorpay.on(
+        "payment.failed",
+        function (response) {
+
+            console.error(
+                "Razorpay payment failed:",
+                response
+            );
+
+
+            showResult(
+                "PAYMENT FAILED\n\n" +
+                JSON.stringify(
+                    response.error,
+                    null,
+                    2
+                )
+            );
+
+        }
+    );
+
+
+    razorpay.open();
+}
+
+
+// --------------------------------------------------
+// VERIFY PAYMENT WITH DJANGO
+// --------------------------------------------------
+
+async function verifyPayment(
+    razorpayResponse
+) {
+
+    try {
+
+        const response = await fetch(
+            `${BASE_URL}/api/billing/payment/verify/`,
+            {
+                method: "POST",
+
+                headers: {
+
+                    "Content-Type":
+                        "application/json",
+
+                    "Authorization":
+                        `Bearer ${AUTH_TOKEN}`
+
+                },
+
+                body: JSON.stringify({
+
+                    razorpay_order_id:
+                        razorpayResponse.razorpay_order_id,
+
+                    razorpay_payment_id:
+                        razorpayResponse.razorpay_payment_id,
+
+                    razorpay_signature:
+                        razorpayResponse.razorpay_signature
+
+                })
+
+            }
+        );
+
+
+        const data =
+            await response.json();
+
+
+        console.log(
+            "Django verification response:",
+            data
+        );
+
+
+        if (!response.ok) {
+
+            showResult(
+                "RAZORPAY PAYMENT RECEIVED,\n" +
+                "BUT DJANGO VERIFICATION FAILED.\n\n" +
+
+                "Razorpay values:\n" +
+
+                "Order ID: " +
+                razorpayResponse.razorpay_order_id +
+
+                "\n\nPayment ID: " +
+                razorpayResponse.razorpay_payment_id +
+
+                "\n\nSignature: " +
+                razorpayResponse.razorpay_signature +
+
+                "\n\nDjango response:\n" +
+
+                JSON.stringify(
+                    data,
+                    null,
+                    2
+                )
+            );
+
+            return;
+        }
+
+
+        showResult(
+            "PAYMENT VERIFICATION SUCCESSFUL!\n\n" +
+
+            JSON.stringify(
+                data,
+                null,
+                2
+            )
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        showResult(
+            "Verification request failed:\n\n" +
+            error.message
+        );
+    }
+}
+
+</script>
+
+</body>
+</html>

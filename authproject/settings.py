@@ -28,8 +28,13 @@ load_dotenv(BASE_DIR / "authproject" / ".env")
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-#encryption
+# encryption
 DATA_ENCRYPTION_KEY = os.getenv("DATA_ENCRYPTION_KEY")
+
+# Razorpay Test Mode
+RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
+RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
+RAZORPAY_WEBHOOK_SECRET = os.getenv("RAZORPAY_WEBHOOK_SECRET")
 
 
 # Quick-start development settings - unsuitable for production
@@ -60,6 +65,7 @@ INSTALLED_APPS = [
     'analytics',
     'audit_logs',
     'billing',
+    'corsheaders',
     'security_hardening',
     'django_celery_beat',
 ]
@@ -102,6 +108,7 @@ SIMPLE_JWT = {
 }
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -110,6 +117,11 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'audit_logs.middleware.AuditLoggingMiddleware',
+]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5500",
+    "http://127.0.0.1:5500",
 ]
 
 ROOT_URLCONF = 'authproject.urls'
