@@ -1,11 +1,10 @@
 from django.db import models
-
-# Create your models here.
-from django.db import models
 from django.conf import settings
+from django.utils import timezone
 
 
 class SubscriptionPlan(models.Model):
+
     FREE = "FREE"
     PRO = "PRO"
     ENTERPRISE = "ENTERPRISE"
@@ -30,7 +29,9 @@ class SubscriptionPlan(models.Model):
         unique=True
     )
 
-    description = models.TextField(blank=True)
+    description = models.TextField(
+        blank=True
+    )
 
     price = models.DecimalField(
         max_digits=10,
@@ -44,6 +45,10 @@ class SubscriptionPlan(models.Model):
         default=MONTHLY
     )
 
+    # -------------------------------
+    # JOB POSTING LIMIT
+    # -------------------------------
+
     job_post_limit = models.PositiveIntegerField(
         default=0,
         help_text="0 means no job posting allowed."
@@ -52,6 +57,10 @@ class SubscriptionPlan(models.Model):
     unlimited_job_posts = models.BooleanField(
         default=False
     )
+
+    # -------------------------------
+    # PAID FEATURES
+    # -------------------------------
 
     premium_analytics = models.BooleanField(
         default=False
@@ -68,6 +77,10 @@ class SubscriptionPlan(models.Model):
     ai_analytics = models.BooleanField(
         default=False
     )
+
+    # -------------------------------
+    # PLAN STATUS
+    # -------------------------------
 
     is_active = models.BooleanField(
         default=True
@@ -86,6 +99,7 @@ class SubscriptionPlan(models.Model):
 
 
 class UserSubscription(models.Model):
+
     ACTIVE = "ACTIVE"
     EXPIRED = "EXPIRED"
     CANCELLED = "CANCELLED"
@@ -114,6 +128,23 @@ class UserSubscription(models.Model):
 
     end_date = models.DateTimeField()
 
+    # -------------------------------
+    # GRACE PERIOD
+    # -------------------------------
+
+    grace_period_end = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text=(
+            "Optional date/time until which paid access "
+            "is allowed after subscription expiry."
+        )
+    )
+
+    # -------------------------------
+    # SUBSCRIPTION STATUS
+    # -------------------------------
+
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
@@ -124,6 +155,26 @@ class UserSubscription(models.Model):
         default=False
     )
 
+    # -------------------------------
+    # CANDIDATE ACCESS LIMIT
+    # -------------------------------
+
+    candidate_access_limit = models.PositiveIntegerField(
+        default=0,
+        help_text=(
+            "0 means no candidate access unless "
+            "unlimited_candidate_access is enabled."
+        )
+    )
+
+    unlimited_candidate_access = models.BooleanField(
+        default=False
+    )
+
+    # -------------------------------
+    # TIMESTAMPS
+    # -------------------------------
+
     created_at = models.DateTimeField(
         auto_now_add=True
     )
@@ -132,11 +183,70 @@ class UserSubscription(models.Model):
         auto_now=True
     )
 
+    # -------------------------------
+    # ACCESS VALIDATION
+    # -------------------------------
+
+    def is_access_valid(self):
+
+        now = timezone.now()
+
+        # Subscription must be active
+        if self.status != self.ACTIVE:
+            return False
+
+        # Normal subscription period
+        if self.end_date > now:
+            return True
+
+        # Grace period after expiry
+        if (
+            self.grace_period_end
+            and self.grace_period_end > now
+        ):
+            return True
+
+        return False
+
+    # -------------------------------
+    # AUTOMATIC EXPIRY
+    # -------------------------------
+
+    def check_and_expire(self):
+
+        now = timezone.now()
+
+        if (
+            self.status == self.ACTIVE
+            and self.end_date <= now
+            and (
+                not self.grace_period_end
+                or self.grace_period_end <= now
+            )
+        ):
+
+            self.status = self.EXPIRED
+            self.save(
+                update_fields=[
+                    "status",
+                    "updated_at"
+                ]
+            )
+
+            return True
+
+        return False
+
     def __str__(self):
-        return f"{self.user.email} - {self.plan.name}"
+
+        return (
+            f"{self.user.email} - "
+            f"{self.plan.name}"
+        )
 
 
 class PaymentTransaction(models.Model):
+
     PENDING = "PENDING"
     SUCCESS = "SUCCESS"
     FAILED = "FAILED"
@@ -196,30 +306,36 @@ class PaymentTransaction(models.Model):
     created_at = models.DateTimeField(
         auto_now_add=True
     )
+
     gateway_order_id = models.CharField(
-    max_length=255,
-    unique=True,
-    null=True,
-    blank=True,
+        max_length=255,
+        unique=True,
+        null=True,
+        blank=True
     )
 
     gateway_payment_id = models.CharField(
-    max_length=255,
-    unique=True,
-    null=True,
-    blank=True,
+        max_length=255,
+        unique=True,
+        null=True,
+        blank=True
     )
 
     gateway_signature = models.CharField(
-    max_length=512,
-    blank=True,
+        max_length=512,
+        blank=True
     )
 
     def __str__(self):
-        return f"{self.transaction_id} - {self.status}"
+
+        return (
+            f"{self.transaction_id} - "
+            f"{self.status}"
+        )
 
 
 class BillingHistory(models.Model):
+
     SUBSCRIPTION_STARTED = "SUBSCRIPTION_STARTED"
     SUBSCRIPTION_RENEWED = "SUBSCRIPTION_RENEWED"
     PAYMENT_COMPLETED = "PAYMENT_COMPLETED"
@@ -227,11 +343,26 @@ class BillingHistory(models.Model):
     SUBSCRIPTION_CANCELLED = "SUBSCRIPTION_CANCELLED"
 
     EVENT_CHOICES = (
-        (SUBSCRIPTION_STARTED, "Subscription Started"),
-        (SUBSCRIPTION_RENEWED, "Subscription Renewed"),
-        (PAYMENT_COMPLETED, "Payment Completed"),
-        (PAYMENT_FAILED, "Payment Failed"),
-        (SUBSCRIPTION_CANCELLED, "Subscription Cancelled"),
+        (
+            SUBSCRIPTION_STARTED,
+            "Subscription Started"
+        ),
+        (
+            SUBSCRIPTION_RENEWED,
+            "Subscription Renewed"
+        ),
+        (
+            PAYMENT_COMPLETED,
+            "Payment Completed"
+        ),
+        (
+            PAYMENT_FAILED,
+            "Payment Failed"
+        ),
+        (
+            SUBSCRIPTION_CANCELLED,
+            "Subscription Cancelled"
+        ),
     )
 
     user = models.ForeignKey(
@@ -268,4 +399,8 @@ class BillingHistory(models.Model):
     )
 
     def __str__(self):
-        return f"{self.user.email} - {self.event_type}"
+
+        return (
+            f"{self.user.email} - "
+            f"{self.event_type}"
+        )

@@ -7,6 +7,7 @@ from .views import (
     MyBillingHistoryAPIView,
     CreatePaymentOrderAPIView,
     VerifyPaymentAPIView,
+    SubscriptionValidationAPIView,
 )
 from .webhook_views import RazorpayWebhookAPIView
 
@@ -51,5 +52,16 @@ urlpatterns = [
     "payment/webhook/",
     RazorpayWebhookAPIView.as_view(),
     name="razorpay-webhook",
+    ),
+
+    path(
+    "subscription/validate/",
+    SubscriptionValidationAPIView.as_view(),
+    name="subscription-validate",
+   ),
+
+    path(
+    "subscription/validate/",
+    SubscriptionValidationAPIView.as_view(),
     ),
 ]

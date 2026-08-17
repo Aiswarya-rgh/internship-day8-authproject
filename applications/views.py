@@ -29,6 +29,8 @@ from jobs.serializers import JobListSerializer
 from accounts.permissions import IsCandidate, IsEmployer,IsAdmin
 from billing.permissions import HasAIMatching
 from accounts.models import CustomUser, Employer, Candidate
+from .services import PremiumCandidateRankingService
+from billing.permissions import get_active_subscription
 
 class ApplyJobAPIView(generics.CreateAPIView):
     serializer_class = ApplicationSerializer
@@ -444,44 +446,80 @@ class JobActivityAPIView(APIView):
             "closed_jobs": closed_jobs,
             "total_applications": total_applications
         })
-
 class RankedCandidatesAPIView(APIView):
 
-    permission_classes = [IsAuthenticated, IsEmployer]
+    permission_classes = [
+        IsAuthenticated,
+        IsEmployer,
+    ]
 
     def get(self, request, job_id):
+
+        # Get currently usable subscription.
+        subscription = get_active_subscription(request.user)
+
+        if not subscription:
+            return Response(
+                {
+                    "detail": (
+                        "An active subscription is required "
+                        "to access candidate ranking reports."
+                    )
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # Candidate ranking is a paid recruiter feature.
+        if subscription.plan.price <= 0:
+            return Response(
+                {
+                    "detail": (
+                        "Candidate ranking reports require "
+                        "a paid subscription."
+                    )
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
         employer = request.user.employer_profile
 
         applications = (
-        Application.objects
-        .select_related(
-        "candidate",
-        "candidate__user",
-        "job"
-        )
-        .filter(
-        job__id=job_id,
-        job__employer=employer
-        )
-        .order_by("-ats_score")
+            Application.objects
+            .select_related(
+                "candidate",
+                "candidate__user",
+                "job",
+            )
+            .filter(
+                job__id=job_id,
+                job__employer=employer,
+            )
+            .order_by("-ats_score")
         )
 
         data = []
 
-        for application in applications:
+        for rank, application in enumerate(
+            applications,
+            start=1,
+        ):
+            data.append(
+                {
+                    "rank": rank,
+                    "candidate": application.candidate.user.email,
+                    "status": application.status,
+                    "ats_score": application.ats_score,
+                }
+            )
 
-            data.append({
-
-                "candidate": application.candidate.user.email,
-
-                "status": application.status,
-
-                "ats_score": application.ats_score
-
-            })
-
-        return Response(data)
+        return Response(
+            {
+                "job_id": job_id,
+                "report_type": "AI_CANDIDATE_RANKING",
+                "results": data,
+            },
+            status=status.HTTP_200_OK,
+        )
 class BatchATSProcessingAPIView(APIView):
 
     permission_classes = [IsAuthenticated, IsEmployer]

@@ -5,8 +5,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
-
-from .services import RazorpayService
+from .permissions import get_active_subscription
+from .services import RazorpayService, FeatureAccessService
+from .permissions import get_active_subscription
 
 from .models import (
     SubscriptionPlan,
@@ -276,3 +277,68 @@ class VerifyPaymentAPIView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+class SubscriptionValidationAPIView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        subscription = get_active_subscription(request.user)
+
+        if not subscription:
+            return Response({
+                "success": True,
+                "has_active_subscription": False,
+                "subscription": None,
+                "features": {},
+                "usage": {},
+            })
+
+        plan = subscription.plan
+
+        job_usage = FeatureAccessService.get_job_post_usage(
+            request.user
+        )
+
+        candidate_usage = (
+            FeatureAccessService.get_candidate_access_usage(
+                request.user
+            )
+        )
+
+        return Response({
+            "success": True,
+            "has_active_subscription": True,
+
+            "subscription": {
+                "id": subscription.id,
+                "plan": plan.name,
+                "status": subscription.status,
+                "start_date": subscription.start_date,
+                "end_date": subscription.end_date,
+                "grace_period_end": (
+                    subscription.grace_period_end
+                ),
+                "auto_renew": subscription.auto_renew,
+            },
+
+            "features": {
+                "premium_analytics": plan.premium_analytics,
+                "ai_matching": plan.ai_matching,
+                "ai_interview_evaluation": (
+                    plan.ai_interview_evaluation
+                ),
+                "ai_analytics": plan.ai_analytics,
+                "unlimited_job_posts": (
+                    plan.unlimited_job_posts
+                ),
+                "unlimited_candidate_access": (
+                    subscription.unlimited_candidate_access
+                ),
+            },
+
+            "usage": {
+                "jobs": job_usage,
+                "candidates": candidate_usage,
+            },
+        })

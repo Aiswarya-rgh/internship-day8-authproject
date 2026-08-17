@@ -1,4 +1,4 @@
-from rest_framework import generics
+from rest_framework import generics,status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
@@ -8,6 +8,8 @@ from django.core.cache import cache
 
 from accounts.permissions import IsEmployer, IsAdmin
 from billing.permissions import HasActiveSubscription
+from billing.feature_access import FeatureAccessService
+from billing.services import FeatureAccessService
 from .models import Job
 from .serializers import (
     JobSerializer,
@@ -16,20 +18,48 @@ from .serializers import (
 
 # Create your views here.
 
-
 class JobCreateAPIView(generics.CreateAPIView):
+
     serializer_class = JobSerializer
+
     permission_classes = [
         IsAuthenticated,
         IsEmployer,
         HasActiveSubscription,
     ]
 
+    def create(self, request, *args, **kwargs):
+
+        if not FeatureAccessService.can_post_job(
+            request.user
+        ):
+            usage = FeatureAccessService.get_job_post_usage(
+                request.user
+            )
+
+            return Response(
+                {
+                    "success": False,
+                    "message": (
+                        "Job posting limit reached "
+                        "for your subscription plan."
+                    ),
+                    "usage": usage,
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        return super().create(
+            request,
+            *args,
+            **kwargs
+        )
+
     def perform_create(self, serializer):
+
         serializer.save(
             employer=self.request.user.employer_profile
         )
-
 
 class JobListAPIView(generics.ListAPIView):
     serializer_class = JobSerializer

@@ -6,6 +6,9 @@ from .views import (
     ConversionAPIView,
     TimeStatsAPIView,
     RoleMetricsAPIView,
+    AdvancedRecruiterAnalyticsAPIView,
+    RecruiterPremiumReportAPIView,
+
 )
 
 urlpatterns = [
@@ -34,4 +37,14 @@ urlpatterns = [
         "role-metrics/",
         RoleMetricsAPIView.as_view()
     ),
+
+    path(
+    "advanced-recruiter/",
+    AdvancedRecruiterAnalyticsAPIView.as_view()
+    ),
+
+    path(
+    "premium-recruiter-report/",
+    RecruiterPremiumReportAPIView.as_view(),
+),
 ]

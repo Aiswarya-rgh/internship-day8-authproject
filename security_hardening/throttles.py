@@ -7,3 +7,6 @@ class LoginRateThrottle(AnonRateThrottle):
 
 class AuthenticatedAPIRateThrottle(UserRateThrottle):
     scope = "authenticated"
+
+class PremiumAPIRateThrottle(UserRateThrottle):
+    scope = "premium"

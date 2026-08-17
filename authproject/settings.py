@@ -90,6 +90,7 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "login": "5/minute",
         "authenticated": "100/minute",
+        "premium": "20/minute",
     },
 
     "DEFAULT_PAGINATION_CLASS":
@@ -114,6 +115,9 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+
+    'billing.middleware.PremiumAccessMiddleware',
+
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'audit_logs.middleware.AuditLoggingMiddleware',
