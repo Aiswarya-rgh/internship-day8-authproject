@@ -8,6 +8,12 @@ from .views import (
     CreatePaymentOrderAPIView,
     VerifyPaymentAPIView,
     SubscriptionValidationAPIView,
+    AdminPaymentTransactionListAPIView,
+    AdminSubscriptionHistoryAPIView,
+    AdminBillingHistoryAPIView,
+    AdminDailyRevenueAPIView,
+    AdminMonthlyRevenueAPIView,
+    AdminPlanWiseRevenueAPIView,
 )
 from .webhook_views import RazorpayWebhookAPIView
 
@@ -63,5 +69,41 @@ urlpatterns = [
     path(
     "subscription/validate/",
     SubscriptionValidationAPIView.as_view(),
+    ),
+
+    path(
+    "admin/transactions/",
+    AdminPaymentTransactionListAPIView.as_view(),
+    name="admin-transactions",
+    ),
+
+    path(
+    "admin/subscriptions/",
+    AdminSubscriptionHistoryAPIView.as_view(),
+    name="admin-subscription-history",
+    ),
+
+    path(
+    "admin/billing-history/",
+    AdminBillingHistoryAPIView.as_view(),
+    name="admin-billing-history",
+    ),
+    
+    path(
+    "admin/revenue/daily/",
+    AdminDailyRevenueAPIView.as_view(),
+    name="admin-daily-revenue",
+    ),
+
+    path(
+    "admin/revenue/monthly/",
+    AdminMonthlyRevenueAPIView.as_view(),
+    name="admin-monthly-revenue",
+    ),
+
+    path(
+    "admin/revenue/plan-wise/",
+    AdminPlanWiseRevenueAPIView.as_view(),
+    name="admin-plan-wise-revenue",
     ),
 ]

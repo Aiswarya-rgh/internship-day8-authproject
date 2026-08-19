@@ -3,11 +3,13 @@ from django.conf import settings
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework import status
 from .permissions import get_active_subscription
 from .services import RazorpayService, FeatureAccessService
 from .permissions import get_active_subscription
+from django.db.models import Sum
+from django.db.models.functions import TruncDate, TruncMonth
 
 from .models import (
     SubscriptionPlan,
@@ -341,4 +343,191 @@ class SubscriptionValidationAPIView(APIView):
                 "jobs": job_usage,
                 "candidates": candidate_usage,
             },
+        })
+
+class AdminPaymentTransactionListAPIView(APIView):
+
+    permission_classes = [
+        IsAuthenticated,
+        IsAdminUser,
+    ]
+
+    def get(self, request):
+
+        payments = (
+            PaymentTransaction.objects
+            .select_related(
+                "user",
+                "subscription",
+                "subscription__plan",
+            )
+            .order_by("-created_at")
+        )
+
+        serializer = PaymentTransactionSerializer(
+            payments,
+            many=True
+        )
+
+        return Response({
+            "success": True,
+            "count": payments.count(),
+            "payments": serializer.data,
+        })
+
+
+class AdminSubscriptionHistoryAPIView(APIView):
+
+    permission_classes = [
+        IsAuthenticated,
+        IsAdminUser,
+    ]
+
+    def get(self, request):
+
+        subscriptions = (
+            UserSubscription.objects
+            .select_related(
+                "user",
+                "plan",
+            )
+            .order_by("-created_at")
+        )
+
+        serializer = UserSubscriptionSerializer(
+            subscriptions,
+            many=True
+        )
+
+        return Response({
+            "success": True,
+            "count": subscriptions.count(),
+            "subscriptions": serializer.data,
+        })
+
+
+class AdminBillingHistoryAPIView(APIView):
+
+    permission_classes = [
+        IsAuthenticated,
+        IsAdminUser,
+    ]
+
+    def get(self, request):
+
+        history = (
+            BillingHistory.objects
+            .select_related(
+                "user",
+                "subscription",
+                "subscription__plan",
+            )
+            .order_by("-created_at")
+        )
+
+        serializer = BillingHistorySerializer(
+            history,
+            many=True
+        )
+
+        return Response({
+            "success": True,
+            "count": history.count(),
+            "billing_history": serializer.data,
+        })
+
+class AdminDailyRevenueAPIView(APIView):
+
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+
+        revenue = (
+            PaymentTransaction.objects
+            .filter(
+                status=PaymentTransaction.SUCCESS,
+                payment_date__isnull=False,
+            )
+            .annotate(
+                date=TruncDate("payment_date")
+            )
+            .values("date")
+            .annotate(
+                revenue=Sum("amount")
+            )
+            .order_by("-date")
+        )
+
+        return Response({
+            "success": True,
+            "report_type": "DAILY_REVENUE",
+            "revenue": list(revenue),
+        })
+
+
+class AdminMonthlyRevenueAPIView(APIView):
+
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+
+        revenue = (
+            PaymentTransaction.objects
+            .filter(
+                status=PaymentTransaction.SUCCESS,
+                payment_date__isnull=False,
+            )
+            .annotate(
+                month=TruncMonth("payment_date")
+            )
+            .values("month")
+            .annotate(
+                revenue=Sum("amount")
+            )
+            .order_by("-month")
+        )
+
+        return Response({
+            "success": True,
+            "report_type": "MONTHLY_REVENUE",
+            "revenue": list(revenue),
+        })
+
+
+class AdminPlanWiseRevenueAPIView(APIView):
+
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+
+        revenue = (
+            PaymentTransaction.objects
+            .filter(
+                status=PaymentTransaction.SUCCESS,
+                subscription__isnull=False,
+            )
+            .values(
+                "subscription__plan__name"
+            )
+            .annotate(
+                revenue=Sum("amount")
+            )
+            .order_by("-revenue")
+        )
+
+        data = []
+
+        for item in revenue:
+
+            data.append({
+                "plan": item[
+                    "subscription__plan__name"
+                ],
+                "revenue": item["revenue"],
+            })
+
+        return Response({
+            "success": True,
+            "report_type": "PLAN_WISE_REVENUE",
+            "revenue": data,
         })
