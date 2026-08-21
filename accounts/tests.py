@@ -4,11 +4,12 @@
 from rest_framework.test import APITestCase
 from rest_framework import status
 from accounts.models import CustomUser
-
+from django.core.cache import cache
 
 class AuthenticationTests(APITestCase):
 
     def setUp(self):
+        cache.clear()
 
         self.signup_url = "/api/signup/"
 

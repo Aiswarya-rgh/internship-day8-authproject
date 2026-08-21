@@ -1,5 +1,6 @@
+import sys
 from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated,AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import AdminAuditLog
@@ -42,10 +43,10 @@ from security_hardening.throttles import LoginRateThrottle
 class RegisterAPIView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = RegisterSerializer
+    permission_classes = [AllowAny]
 
 class SecureLoginAPIView(TokenObtainPairView):
     throttle_classes = [LoginRateThrottle]
-
 
 class ProfileAPIView(APIView):
 

@@ -1,9 +1,34 @@
+# Virtual environments
 venv/
 .venv/
+
+# Python
 __pycache__/
 *.py[cod]
+
+# Database
 db.sqlite3
+
+# Environment secrets
 .env
+authproject/.env
+*.env
+*.env.*
+authproject/.env.*
+# IDE
 .vscode/
+
+# OS
 .DS_Store
+
+# Logs
 *.log
+
+# Celery runtime files
+celerybeat-schedule
+celerybeat-schedule-shm
+celerybeat-schedule-wal
+
+# Static and media generated files
+staticfiles/
+media/

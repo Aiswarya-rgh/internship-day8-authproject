@@ -7,10 +7,11 @@ from accounts.models import CustomUser
 from jobs.models import Job
 from applications.models import Application
 from django.core.files.uploadedfile import SimpleUploadedFile
-
+from django.core.cache import cache
 
 class EmployerApplicationTests(APITestCase):
-
+    def setUp(self):
+        cache.clear()
     def test_employer_can_view_applicants(self):
 
         employer = CustomUser.objects.create_user(

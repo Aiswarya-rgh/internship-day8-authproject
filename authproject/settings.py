@@ -42,10 +42,15 @@ RAZORPAY_WEBHOOK_SECRET = os.getenv("RAZORPAY_WEBHOOK_SECRET")
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_KEY")
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG") == "False"
 
-ALLOWED_HOSTS = []
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = os.getenv("DEBUG", "False").lower() == "true"
+
+ALLOWED_HOSTS = [
+    "54.252.215.81",
+    "localhost",
+    "127.0.0.1",
+]
 
 
 # Application definition
@@ -83,7 +88,6 @@ REST_FRAMEWORK = {
     ),
 
     "DEFAULT_THROTTLE_CLASSES": (
-        "security_hardening.throttles.LoginRateThrottle",
         "security_hardening.throttles.AuthenticatedAPIRateThrottle",
     ),
 
@@ -193,7 +197,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 #auth_user model created
 
