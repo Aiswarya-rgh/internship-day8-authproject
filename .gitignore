@@ -32,3 +32,4 @@ celerybeat-schedule-wal
 # Static and media generated files
 staticfiles/
 media/
+.env

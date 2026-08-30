@@ -1,3 +1,7 @@
+import os
+import tempfile
+
+from django.core.files.storage import default_storage
 from celery import shared_task
 from django.utils import timezone
 from applications.models import Application
@@ -20,41 +24,63 @@ from .utils import (
 @shared_task
 def process_resume_task(file_path):
 
-    text = extract_resume_text(file_path)
+    temp_path = None
 
-    text = clean_resume_text(text)
+    try:
+        # Download the private S3 file to a temporary local file
+        extension = os.path.splitext(file_path)[1]
 
-    tokens = tokenize_text(text)
+        with default_storage.open(file_path, "rb") as source_file:
+            with tempfile.NamedTemporaryFile(
+                suffix=extension,
+                delete=False
+            ) as temp_file:
 
-    skills = extract_skills(tokens)
+                temp_path = temp_file.name
+                temp_file.write(source_file.read())
 
-    email = extract_email(text)
+        # Existing resume processing works with a local path
+        text = extract_resume_text(temp_path)
 
-    phone = extract_phone(text)
+        text = clean_resume_text(text)
 
-    experience = extract_experience(text)
+        tokens = tokenize_text(text)
 
-    role = extract_role(text)
+        skills = extract_skills(tokens)
 
-    education = extract_education(text)
+        email = extract_email(text)
 
-    score = calculate_resume_score(
-        skills,
-        experience,
-        education
-    )
+        phone = extract_phone(text)
 
-    print("Resume Processed Successfully")
+        experience = extract_experience(text)
 
-    print({
-        "skills": skills,
-        "email": email,
-        "phone": phone,
-        "experience": experience,
-        "role": role,
-        "education": education,
-        "score": score
-    })
+        role = extract_role(text)
+
+        education = extract_education(text)
+
+        score = calculate_resume_score(
+            skills,
+            experience,
+            education
+        )
+
+        print("Resume Processed Successfully")
+
+        print({
+            "skills": skills,
+            "email": email,
+            "phone": phone,
+            "experience": experience,
+            "role": role,
+            "education": education,
+            "score": score
+        })
+
+    finally:
+        # Remove temporary local copy
+        if temp_path and os.path.exists(temp_path):
+            os.remove(temp_path)
+
 @shared_task(bind=True, max_retries=3)
 def ai_resume_analysis_task(self, application_id):
 

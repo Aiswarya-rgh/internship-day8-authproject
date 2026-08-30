@@ -163,15 +163,15 @@ class ResumeUploadAPIView(APIView):
             partial=True
         )
         if serializer.is_valid():
-            serializer.save()
-            resume_path = profile.resume.path
-            process_resume_task.delay(resume_path)
-            ai_resume_analysis_task.delay(resume_path)
+          serializer.save()
 
-            return Response({
-                "message": "Resume uploaded successfully.",
-                "data": serializer.data
-            })
+          resume_key = profile.resume.name
+          process_resume_task.delay(resume_key)
+
+          return Response({
+          "message": "Resume uploaded successfully.",
+          "data": serializer.data
+          })
 
         return Response(serializer.errors)
 #PAGINATION CANDIDATELIST
